@@ -9,13 +9,13 @@ const LABELS: Record<Role, { title: string; submitCta: string; warning: string }
     title: 'Inviter un salarié',
     submitCta: "Envoyer l'invitation",
     warning:
-      "Un email de bienvenue va être envoyé. Le lien dans l'email ouvrira l'app mobile (pense à dire au salarié d'avoir installé l'app).",
+      "Un email de bienvenue va être envoyé. Le lien dans l'email ouvre l'app mobile — pense à demander au salarié d'avoir installé l'app au préalable.",
   },
   admin: {
     title: 'Inviter un administrateur',
     submitCta: "Envoyer l'invitation",
     warning:
-      "Un email de bienvenue va être envoyé. Le lien dans l'email ouvrira l'espace administration.",
+      "Un email de bienvenue va être envoyé. Le lien dans l'email ouvre directement l'espace administration.",
   },
 };
 
@@ -54,68 +54,96 @@ export default function InviteModal({ role, onClose, onSuccess, onError }: Props
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/40 px-4">
-      <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
-        <h2 className="text-lg font-semibold text-slate-900">{labels.title}</h2>
-        <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800">{labels.warning}</p>
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-          <div>
-            <label htmlFor="invite-email" className="block text-sm font-medium text-slate-700">
-              Email
-            </label>
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-ink-900/40 px-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-2xl bg-white p-7 shadow-soft">
+        <h2 className="font-display text-2xl font-medium text-ink-900">{labels.title}</h2>
+        <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          {labels.warning}
+        </p>
+        <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+          <Field label="Email" htmlFor="invite-email">
             <input
               id="invite-email"
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+              className="input"
             />
-          </div>
-          <div>
-            <label htmlFor="invite-prenom" className="block text-sm font-medium text-slate-700">
-              Prénom
-            </label>
-            <input
-              id="invite-prenom"
-              type="text"
-              value={prenom}
-              onChange={(e) => setPrenom(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
-            />
-          </div>
-          <div>
-            <label htmlFor="invite-nom" className="block text-sm font-medium text-slate-700">
-              Nom
-            </label>
-            <input
-              id="invite-nom"
-              type="text"
-              value={nom}
-              onChange={(e) => setNom(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
-            />
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Prénom" htmlFor="invite-prenom">
+              <input
+                id="invite-prenom"
+                type="text"
+                value={prenom}
+                onChange={(e) => setPrenom(e.target.value)}
+                className="input"
+              />
+            </Field>
+            <Field label="Nom" htmlFor="invite-nom">
+              <input
+                id="invite-nom"
+                type="text"
+                value={nom}
+                onChange={(e) => setNom(e.target.value)}
+                className="input"
+              />
+            </Field>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 pt-3">
             <button
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+              className="btn-secondary"
             >
               Annuler
             </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
-            >
+            <button type="submit" disabled={submitting} className="btn-primary">
               {submitting ? 'Envoi…' : labels.submitCta}
             </button>
           </div>
         </form>
       </div>
+
+      <style>{`
+        .input {
+          margin-top: 6px;
+          width: 100%;
+          border: 1px solid #e8e6df;
+          background: white;
+          padding: 0.625rem 0.75rem;
+          font-size: 0.875rem;
+          border-radius: 0.5rem;
+          transition: border-color 150ms ease, box-shadow 150ms ease;
+        }
+        .input:focus {
+          outline: none;
+          border-color: #29a4b8;
+          box-shadow: 0 0 0 3px rgba(41, 164, 184, 0.2);
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  htmlFor: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label htmlFor={htmlFor} className="block text-sm font-medium text-ink-700">
+        {label}
+      </label>
+      {children}
     </div>
   );
 }

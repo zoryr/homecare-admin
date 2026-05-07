@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
+import AdminNav from './AdminNav';
 import SignOutButton from './SignOutButton';
 import { ToastProvider } from '@/components/Toast';
 import { getCurrentProfile } from '@/lib/supabase/get-profile';
@@ -16,35 +17,46 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <ToastProvider>
-      <div className="flex min-h-screen flex-col bg-slate-50">
-        <header className="border-b border-slate-200 bg-white">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-            <Link href="/admin/dashboard" className="flex items-center gap-3">
-              <Image src="/logo.png" alt="Home & Care" width={36} height={36} className="h-9 w-9" />
-              <span className="font-semibold text-slate-900">Admin Home &amp; Care</span>
+      <div className="flex min-h-screen flex-col bg-ink-50">
+        <header className="sticky top-0 z-30 border-b border-ink-200 bg-white/85 backdrop-blur">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-6 py-3">
+            <Link
+              href="/admin/dashboard"
+              className="flex items-center gap-3 transition hover:opacity-80"
+              aria-label="Accueil admin Home & Care"
+            >
+              <Image
+                src="/logo.png"
+                alt="Home & Care"
+                width={140}
+                height={84}
+                priority
+                className="h-9 w-auto"
+              />
+              <span className="hidden text-sm font-medium uppercase tracking-[0.18em] text-ink-500 sm:inline">
+                Espace admin
+              </span>
             </Link>
 
-            <nav className="flex items-center gap-4 text-sm">
-              <Link href="/admin/dashboard" className="text-slate-700 hover:text-slate-900">
-                Tableau de bord
-              </Link>
-              <Link href="/admin/actualites" className="text-slate-700 hover:text-slate-900">
-                Actualités
-              </Link>
-              <Link href="/admin/salaries" className="text-slate-700 hover:text-slate-900">
-                Salariés
-              </Link>
-              <Link href="/admin/admins" className="text-slate-700 hover:text-slate-900">
-                Admins
-              </Link>
-              <span className="text-slate-300">|</span>
-              <span className="text-slate-500">{profile.email}</span>
+            <div className="flex flex-1 flex-wrap items-center justify-end gap-3">
+              <AdminNav />
+              <span className="hidden h-5 w-px bg-ink-200 sm:block" />
+              <span className="hidden text-xs text-ink-500 md:inline">{profile.email}</span>
               <SignOutButton />
-            </nav>
+            </div>
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</main>
+        <main className="brand-surface mx-auto w-full max-w-6xl flex-1 px-6 py-10">
+          {children}
+        </main>
+
+        <footer className="border-t border-ink-200 bg-white">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3 text-xs text-ink-500">
+            <span>Home &amp; Care · Pays de Grasse</span>
+            <span>agence06@homeandcare.fr</span>
+          </div>
+        </footer>
       </div>
     </ToastProvider>
   );

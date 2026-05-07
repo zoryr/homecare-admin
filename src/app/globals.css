@@ -2,8 +2,68 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background: #ffffff;
-  color: #171717;
-  font-family: Arial, Helvetica, sans-serif;
+:root {
+  --background: 250 250 247;     /* ink-50 */
+  --foreground: 38 36 31;        /* ink-800 */
+  --brand: 41 164 184;           /* brand-500 */
+  --brand-dark: 25 105 122;      /* brand-700 */
+  --border: 232 230 223;         /* ink-200 */
 }
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: rgb(var(--background));
+  color: rgb(var(--foreground));
+  font-family: var(--font-manrope), system-ui, sans-serif;
+  font-feature-settings: 'cv11', 'ss01', 'ss03';
+}
+
+/* Surface décorative subtile (haut de page) — donne un peu de chaleur */
+.brand-surface {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(41, 164, 184, 0.08), transparent 60%),
+    rgb(var(--background));
+}
+
+/* Liens et focus refinés */
+:focus-visible {
+  outline: 2px solid rgb(var(--brand));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Boutons — utilitaires de classe brand */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  background: rgb(var(--brand));
+  color: white;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: background 150ms ease, transform 100ms ease;
+}
+.btn-primary:hover { background: rgb(var(--brand-dark)); }
+.btn-primary:active { transform: translateY(1px); }
+.btn-primary:disabled { background: #a8a496; cursor: not-allowed; transform: none; }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  background: white;
+  color: rgb(var(--foreground));
+  border: 1px solid rgb(var(--border));
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: background 150ms ease;
+}
+.btn-secondary:hover { background: #f5f4ef; }

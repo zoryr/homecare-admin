@@ -27,12 +27,9 @@ export default function SearchBar({ initialQuery, filter }: Props) {
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder="Rechercher par titre…"
-        className="flex-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+        className="flex-1 rounded-full border border-ink-200 bg-white px-4 py-1.5 text-sm shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
       />
-      <button
-        type="submit"
-        className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
-      >
+      <button type="submit" className="btn-secondary !py-1.5">
         Chercher
       </button>
     </form>

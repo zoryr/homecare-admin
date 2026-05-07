@@ -44,10 +44,14 @@ function ToastItem({ toast, onDone }: { toast: Toast; onDone: () => void }) {
 
   const cls =
     toast.kind === 'success'
-      ? 'bg-emerald-600 text-white'
-      : 'bg-rose-600 text-white';
+      ? 'border-brand-700 bg-brand-600 text-white'
+      : 'border-rose-700 bg-rose-600 text-white';
 
   return (
-    <div className={`pointer-events-auto rounded-md px-4 py-2 text-sm shadow-lg ${cls}`}>{toast.message}</div>
+    <div
+      className={`pointer-events-auto max-w-sm rounded-lg border px-4 py-2.5 text-sm shadow-soft ${cls}`}
+    >
+      {toast.message}
+    </div>
   );
 }

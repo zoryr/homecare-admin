@@ -43,18 +43,24 @@ export default async function ActualitesListPage({
 
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold text-slate-900">Actualités</h1>
-        <Link
-          href="/admin/actualites/new"
-          className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-        >
+      <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.22em] text-brand-600">
+            Communication interne
+          </p>
+          <h1 className="mt-1 font-display text-4xl font-medium text-ink-900">Actualités</h1>
+          <p className="mt-2 text-sm text-ink-500">
+            {actus.length} article{actus.length > 1 ? 's' : ''}
+            {filter !== 'toutes' ? ` (${filter})` : ''}.
+          </p>
+        </div>
+        <Link href="/admin/actualites/new" className="btn-primary">
           + Nouvelle actualité
         </Link>
-      </div>
+      </header>
 
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="flex gap-1 rounded-md bg-slate-100 p-1">
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <div className="flex gap-1 rounded-full border border-ink-200 bg-white p-1">
           {FILTERS.map((f) => {
             const params = new URLSearchParams();
             if (f.id !== 'toutes') params.set('filter', f.id);
@@ -65,7 +71,7 @@ export default async function ActualitesListPage({
               <Link
                 key={f.id}
                 href={href}
-                className={`rounded px-3 py-1 text-sm font-medium transition ${active ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                className={`rounded-full px-4 py-1 text-sm font-medium transition ${active ? 'bg-brand-500 text-white shadow-sm' : 'text-ink-600 hover:bg-ink-50 hover:text-ink-900'}`}
               >
                 {f.label}
               </Link>
@@ -76,7 +82,7 @@ export default async function ActualitesListPage({
       </div>
 
       {actus.length === 0 ? (
-        <p className="rounded-md border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">
+        <p className="rounded-2xl border border-dashed border-ink-300 bg-white p-12 text-center text-ink-500">
           {q || filter !== 'toutes'
             ? "Aucune actualité ne correspond à ces critères."
             : "Aucune actualité pour le moment. Crée la première."}
@@ -102,9 +108,9 @@ function ActuCard({ actu }: { actu: Actualite }) {
   return (
     <Link
       href={`/admin/actualites/${actu.id}`}
-      className="group flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white transition hover:border-slate-300 hover:shadow-sm"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-ink-200 bg-white transition hover:border-brand-300 hover:shadow-soft"
     >
-      <div className="relative aspect-video w-full bg-slate-100">
+      <div className="relative aspect-video w-full bg-ink-100">
         {actu.image_couverture_url ? (
           <Image
             src={actu.image_couverture_url}
@@ -114,27 +120,27 @@ function ActuCard({ actu }: { actu: Actualite }) {
             className="object-cover"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-xs text-slate-400">Pas d&apos;image</div>
+          <div className="flex h-full items-center justify-center text-xs text-ink-400">Pas d&apos;image</div>
         )}
-        <div className="absolute left-2 top-2 flex flex-wrap gap-1">
+        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
           {actu.statut === 'brouillon' && (
-            <span className="rounded-full bg-slate-900/70 px-2 py-0.5 text-xs font-medium text-white">
+            <span className="rounded-full bg-ink-900/75 px-2.5 py-0.5 text-xs font-medium text-white backdrop-blur">
               Brouillon
             </span>
           )}
           {isFeatured && (
-            <span className="rounded-full bg-amber-500 px-2 py-0.5 text-xs font-medium text-white">
+            <span className="rounded-full bg-brand-500 px-2.5 py-0.5 text-xs font-medium text-white">
               📌 Épinglée
             </span>
           )}
         </div>
       </div>
-      <div className="flex flex-1 flex-col gap-2 p-4">
-        <h2 className="line-clamp-2 text-base font-semibold text-slate-900 group-hover:text-slate-700">
+      <div className="flex flex-1 flex-col gap-2 p-5">
+        <h2 className="line-clamp-2 font-display text-xl font-medium text-ink-900 transition group-hover:text-brand-700">
           {actu.titre}
         </h2>
-        <p className="line-clamp-2 text-sm text-slate-600">{actu.description}</p>
-        <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
+        <p className="line-clamp-2 text-sm text-ink-500">{actu.description}</p>
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-2 text-xs">
           <div className="flex flex-wrap gap-1">
             {actu.tags.map((tagId) => {
               const tag = getTagById(tagId);
@@ -146,7 +152,7 @@ function ActuCard({ actu }: { actu: Actualite }) {
               );
             })}
           </div>
-          <span className="text-slate-500">{dateLabel}</span>
+          <span className="text-ink-400">{dateLabel}</span>
         </div>
       </div>
     </Link>
