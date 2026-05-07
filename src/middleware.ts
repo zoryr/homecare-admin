@@ -26,7 +26,34 @@ export async function middleware(request: NextRequest) {
     },
   );
 
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const path = request.nextUrl.pathname;
+  const isAdminRoute = path.startsWith('/admin');
+
+  if (isAdminRoute) {
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      url.search = '';
+      return NextResponse.redirect(url);
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, actif')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile || profile.role !== 'admin' || !profile.actif) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      url.search = '?error=not_admin';
+      return NextResponse.redirect(url);
+    }
+  }
 
   return response;
 }

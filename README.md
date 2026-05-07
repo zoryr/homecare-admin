@@ -2,40 +2,50 @@
 
 Espace administration Home & Care — Next.js 14 (App Router) + Supabase, déployé sur Vercel.
 
+## Variables d'environnement
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://sgpfvzlyhdzfgdceisnx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>
+NEXT_PUBLIC_SITE_URL=http://localhost:3000   # ou l'URL Vercel en prod
+SUPABASE_SERVICE_ROLE_KEY=<service role key — JAMAIS exposer>
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` n'est lue que dans des Route Handlers / Server Components. Elle ne
+porte pas le préfixe `NEXT_PUBLIC_` exprès — Next.js refuse alors de l'inliner côté client.
+
 ## Démarrer en local
 
 ```bash
 npm install
 cp .env.local.example .env.local
-# remplir NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY
+# remplir les 4 variables
 npm run dev
+# http://localhost:3000
 ```
 
-L'app tourne sur http://localhost:3000.
+## Flow d'authentification
 
-## Stack
+1. Un admin invite un salarié depuis `/admin/salaries` (modal "Inviter un salarié").
+2. Le salarié reçoit un email avec un lien magique.
+3. Le clic l'envoie sur `/auth/callback` qui échange le code contre une session.
+4. La ligne `profiles` est créée automatiquement (trigger `handle_new_user`).
+5. L'invitation est marquée `accepted_at` (trigger `mark_invitation_accepted`).
 
-- Next.js 14 App Router, TypeScript strict, Tailwind CSS
-- Supabase (auth magic link, Postgres, Storage, RLS) via `@supabase/ssr`
+Connexion d'un admin déjà existant : `/login` → email → lien magique → `/admin/dashboard`.
 
 ## Structure
 
 - `src/app/` — pages App Router
-- `src/lib/supabase/client.ts` — client Supabase navigateur
-- `src/lib/supabase/server.ts` — client Supabase Server Components / Route Handlers
-- `src/middleware.ts` — refresh de session sur chaque requête
-- `supabase/migrations/` — migrations SQL à coller dans le SQL Editor de Supabase
-
-## Promouvoir un compte en admin
-
-La table `profiles` est peuplée par un trigger sur `auth.users` : la ligne d'un nouvel
-utilisateur n'existe **qu'après sa première connexion magic link**. Donc pour promouvoir
-quelqu'un en admin :
-
-1. Le futur admin se connecte une 1re fois via magic link (cela crée sa ligne `profiles`).
-2. Exécuter dans le SQL Editor :
-   ```sql
-   update public.profiles set role = 'admin' where email = 'son@email.fr';
-   ```
-
-Si on lance le `update` avant la 1re connexion, il ne touche aucune ligne (silencieusement).
+- `src/app/login/` — page de connexion magic link
+- `src/app/auth/callback/` — Route Handler qui termine l'auth flow
+- `src/app/admin/` — espace admin protégé (layout vérifie `role='admin'` + `actif=true`)
+- `src/app/api/admin/invite` — POST, invite un salarié via service role
+- `src/app/api/admin/toggle-actif` — POST, active/désactive un salarié
+- `src/lib/supabase/client.ts` — client navigateur
+- `src/lib/supabase/server.ts` — client Server Components / Route Handlers
+- `src/lib/supabase/admin.ts` — client service role (server-only)
+- `src/lib/supabase/get-profile.ts` — helper qui lit le profile courant
+- `src/middleware.ts` — refresh session + protection `/admin/*`
+- `src/components/Toast.tsx` — provider + hook `useToast`
+- `supabase/migrations/` — SQL à coller dans le SQL Editor de Supabase
