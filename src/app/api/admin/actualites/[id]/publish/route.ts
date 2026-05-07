@@ -38,7 +38,7 @@ export async function POST(_request: NextRequest, { params }: { params: { id: st
         message: actu.titre.slice(0, 200),
         source: 'auto_actu',
         source_id: actu.id,
-        deeplink_path: `/(auth)/actualites/${actu.id}`,
+        deeplink_path: `/(modal)/actualites/${actu.id}`,
         audience: 'all',
         created_by: caller.id,
       });
