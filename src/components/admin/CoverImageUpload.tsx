@@ -8,9 +8,16 @@ import { createClient } from '@/lib/supabase/client';
 type Props = {
   value: string | null;
   onChange: (url: string | null) => void;
+  bucket?: string;
+  folder?: string;
 };
 
-export default function CoverImageUpload({ value, onChange }: Props) {
+export default function CoverImageUpload({
+  value,
+  onChange,
+  bucket = 'actus-images',
+  folder = 'couvertures',
+}: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,10 +30,10 @@ export default function CoverImageUpload({ value, onChange }: Props) {
 
     const supabase = createClient();
     const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-    const path = `couvertures/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
     const { error: uploadError } = await supabase.storage
-      .from('actus-images')
+      .from(bucket)
       .upload(path, file, { contentType: file.type, upsert: false });
 
     if (uploadError) {
@@ -36,7 +43,7 @@ export default function CoverImageUpload({ value, onChange }: Props) {
       return;
     }
 
-    const { data } = supabase.storage.from('actus-images').getPublicUrl(path);
+    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
     onChange(data.publicUrl);
     setUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = '';

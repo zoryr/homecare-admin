@@ -7,6 +7,7 @@ const ITEMS = [
   { href: '/admin/dashboard', label: 'Tableau de bord' },
   { href: '/admin/actualites', label: 'Actualités' },
   { href: '/admin/notifications', label: 'Notifications' },
+  { href: '/admin/apropos', label: 'À propos' },
   { href: '/admin/salaries', label: 'Salariés' },
   { href: '/admin/admins', label: 'Admins' },
 ];
