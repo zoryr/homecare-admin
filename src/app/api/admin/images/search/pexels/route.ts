@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const key = process.env.PEXELS_API_KEY;
+  const key = process.env.PEXELS_API_KEY?.trim();
   if (!key) {
     return NextResponse.json({ error: 'PEXELS_API_KEY non configurée' }, { status: 500 });
   }
@@ -53,6 +53,12 @@ export async function GET(request: NextRequest) {
   });
 
   if (!res.ok) {
+    if (res.status === 401) {
+      return NextResponse.json(
+        { error: 'Pexels : clé API invalide ou expirée. Vérifie PEXELS_API_KEY.' },
+        { status: 502 },
+      );
+    }
     return NextResponse.json({ error: `Pexels error ${res.status}` }, { status: 502 });
   }
 

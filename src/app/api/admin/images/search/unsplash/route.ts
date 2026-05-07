@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const key = process.env.UNSPLASH_ACCESS_KEY;
+  const key = process.env.UNSPLASH_ACCESS_KEY?.trim();
   if (!key) {
     return NextResponse.json({ error: 'UNSPLASH_ACCESS_KEY non configurée' }, { status: 500 });
   }
@@ -52,10 +52,13 @@ export async function GET(request: NextRequest) {
   });
 
   if (!res.ok) {
-    return NextResponse.json(
-      { error: `Unsplash error ${res.status}` },
-      { status: 502 },
-    );
+    if (res.status === 401) {
+      return NextResponse.json(
+        { error: 'Unsplash : clé API invalide ou expirée. Vérifie UNSPLASH_ACCESS_KEY.' },
+        { status: 502 },
+      );
+    }
+    return NextResponse.json({ error: `Unsplash error ${res.status}` }, { status: 502 });
   }
 
   const json = (await res.json()) as UnsplashSearch;

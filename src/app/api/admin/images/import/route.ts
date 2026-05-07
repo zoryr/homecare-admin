@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
   // 1. Ping Unsplash download_location (CGU)
   if (body.provider === 'unsplash' && body.download_location) {
-    const key = process.env.UNSPLASH_ACCESS_KEY;
+    const key = process.env.UNSPLASH_ACCESS_KEY?.trim();
     if (key) {
       try {
         const dlUrl = new URL(body.download_location);
