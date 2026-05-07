@@ -30,6 +30,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               <Link href="/admin/salaries" className="text-slate-700 hover:text-slate-900">
                 Salariés
               </Link>
+              <Link href="/admin/admins" className="text-slate-700 hover:text-slate-900">
+                Admins
+              </Link>
               <span className="text-slate-300">|</span>
               <span className="text-slate-500">{profile.email}</span>
               <SignOutButton />
