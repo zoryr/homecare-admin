@@ -3,12 +3,14 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { getCurrentProfile } from '@/lib/supabase/get-profile';
 import { createClient } from '@/lib/supabase/server';
 import type { ActuStatut } from '@/lib/actus/types';
+import type { ImageSource } from '@/lib/images/types';
 
 type Body = {
   titre?: string;
   description?: string;
   corps?: string;
   image_couverture_url?: string | null;
+  image_source?: ImageSource | null;
   tags?: string[];
   statut?: ActuStatut;
   featured_jusqua?: string | null;
@@ -43,6 +45,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     description?: string;
     corps?: string;
     image_couverture_url?: string | null;
+    image_source?: ImageSource | null;
     tags?: string[];
     statut?: ActuStatut;
     publie_le?: string | null;
@@ -54,6 +57,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   if (typeof body.description === 'string') update.description = body.description;
   if (typeof body.corps === 'string') update.corps = body.corps;
   if (body.image_couverture_url !== undefined) update.image_couverture_url = body.image_couverture_url;
+  if (body.image_source !== undefined) update.image_source = body.image_source;
   if (Array.isArray(body.tags)) update.tags = body.tags;
   if (body.featured_jusqua !== undefined) update.featured_jusqua = body.featured_jusqua;
 

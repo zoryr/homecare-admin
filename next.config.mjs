@@ -7,6 +7,9 @@ const nextConfig = {
         hostname: 'sgpfvzlyhdzfgdceisnx.supabase.co',
         pathname: '/storage/v1/object/public/**',
       },
+      // Default cover image (stockée dans /public, servie via le domaine du déploiement)
+      { protocol: 'https', hostname: '*.vercel.app' },
+      { protocol: 'https', hostname: 'homecare-admin-gray.vercel.app' },
     ],
   },
 };

@@ -4,12 +4,14 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import ActuPreview from '@/components/admin/ActuPreview';
-import CoverImageUpload from '@/components/admin/CoverImageUpload';
+import ImagePicker from '@/components/admin/ImagePicker';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import TagSelector from '@/components/admin/TagSelector';
 import { useToast } from '@/components/Toast';
 import { createClient } from '@/lib/supabase/client';
 import type { ActuStatut, Actualite } from '@/lib/actus/types';
+import { DEFAULT_IMAGE_SOURCE, getDefaultCoverUrl } from '@/lib/images/defaults';
+import type { ImageSource } from '@/lib/images/types';
 
 type Props = { initial: Actualite | null };
 
@@ -28,11 +30,15 @@ export default function ActuForm({ initial }: Props) {
   const { notify } = useToast();
   const isNew = initial === null;
 
+  const defaultCoverUrl = getDefaultCoverUrl();
   const [titre, setTitre] = useState(initial?.titre ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [corps, setCorps] = useState(initial?.corps ?? '');
   const [imageCouvertureUrl, setImageCouvertureUrl] = useState<string | null>(
-    initial?.image_couverture_url ?? null,
+    initial?.image_couverture_url ?? defaultCoverUrl,
+  );
+  const [imageSource, setImageSource] = useState<ImageSource | null>(
+    initial?.image_source ?? (initial ? null : DEFAULT_IMAGE_SOURCE),
   );
   const [tags, setTags] = useState<string[]>(initial?.tags ?? []);
   const [statut, setStatut] = useState<ActuStatut>(initial?.statut ?? 'brouillon');
@@ -79,6 +85,7 @@ export default function ActuForm({ initial }: Props) {
       description: description.trim(),
       corps,
       image_couverture_url: imageCouvertureUrl,
+      image_source: imageSource,
       tags,
       // Au 1er save d'une nouvelle actu, on force brouillon (le passage à "publié"
       // se fait après, depuis l'écran d'édition).
@@ -188,7 +195,14 @@ export default function ActuForm({ initial }: Props) {
 
       {/* Section 2 : couverture */}
       <Section title="Image de couverture">
-        <CoverImageUpload value={imageCouvertureUrl} onChange={setImageCouvertureUrl} />
+        <ImagePicker
+          value={{ url: imageCouvertureUrl, source: imageSource }}
+          onChange={({ url, source }) => {
+            setImageCouvertureUrl(url);
+            setImageSource(source);
+          }}
+          defaultImageUrl={defaultCoverUrl}
+        />
       </Section>
 
       {/* Section 3 : contenu */}

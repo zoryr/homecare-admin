@@ -3,12 +3,14 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { getCurrentProfile } from '@/lib/supabase/get-profile';
 import { createClient } from '@/lib/supabase/server';
 import type { ActuStatut } from '@/lib/actus/types';
+import type { ImageSource } from '@/lib/images/types';
 
 type Body = {
   titre?: string;
   description?: string;
   corps?: string;
   image_couverture_url?: string | null;
+  image_source?: ImageSource | null;
   tags?: string[];
   statut?: ActuStatut;
   featured_jusqua?: string | null;
@@ -35,6 +37,7 @@ export async function POST(request: NextRequest) {
       description: body.description ?? '',
       corps: body.corps ?? '',
       image_couverture_url: body.image_couverture_url ?? null,
+      image_source: body.image_source ?? null,
       tags: body.tags ?? [],
       statut,
       publie_le: statut === 'publie' ? new Date().toISOString() : null,

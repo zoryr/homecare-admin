@@ -1,3 +1,5 @@
+import type { ImageSource } from '@/lib/images/types';
+
 export type ActuStatut = 'brouillon' | 'publie';
 
 export interface Actualite {
@@ -6,6 +8,7 @@ export interface Actualite {
   description: string;
   corps: string;
   image_couverture_url: string | null;
+  image_source: ImageSource | null;
   tags: string[];
   statut: ActuStatut;
   publie_le: string | null;
