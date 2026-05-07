@@ -23,7 +23,6 @@ export async function POST(request: NextRequest) {
   const email = body.email.trim().toLowerCase();
   const prenom = body.prenom?.trim() || null;
   const nom = body.nom?.trim() || null;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin;
 
   const admin = createAdminClient();
 
@@ -38,13 +37,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 
-  const { error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
-    data: { prenom, nom, invited_by: caller.id },
-    redirectTo: `${siteUrl}/auth/callback`,
+  const { error: createError } = await admin.auth.admin.createUser({
+    email,
+    email_confirm: true,
+    user_metadata: { prenom, nom, invited_by: caller.id },
   });
 
-  if (inviteError) {
-    return NextResponse.json({ error: inviteError.message }, { status: 500 });
+  if (createError) {
+    return NextResponse.json({ error: createError.message }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });

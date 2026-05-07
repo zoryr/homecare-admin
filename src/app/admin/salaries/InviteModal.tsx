@@ -38,6 +38,10 @@ export default function InviteModal({ onClose, onSuccess, onError }: Props) {
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/40 px-4">
       <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
         <h2 className="text-lg font-semibold text-slate-900">Inviter un salarié</h2>
+        <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          Le salarié n&apos;est pas notifié automatiquement. Pense à lui dire de
+          télécharger l&apos;app et de se connecter avec son email.
+        </p>
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
             <label htmlFor="invite-email" className="block text-sm font-medium text-slate-700">
