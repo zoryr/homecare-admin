@@ -27,6 +27,12 @@ export async function POST(request: NextRequest) {
   const prenom = body.prenom?.trim() || null;
   const nom = body.nom?.trim() || null;
 
+  // Redirect après confirmation du magic link d'invitation :
+  // - admin : la page login admin (auto-redirect vers dashboard si session OK)
+  // - salarié : deep link app mobile (ouvre l'app si installée)
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin;
+  const redirectTo = role === 'admin' ? `${siteUrl}/login` : 'homecare://login';
+
   const admin = createAdminClient();
 
   const { error: insertError } = await admin
@@ -40,29 +46,29 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 
-  const { data: created, error: createError } = await admin.auth.admin.createUser({
-    email,
-    email_confirm: true,
-    user_metadata: { prenom, nom, invited_by: caller.id },
+  // Envoie le mail d'invitation Supabase + crée le user (non confirmé)
+  const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
+    data: { prenom, nom, invited_by: caller.id },
+    redirectTo,
   });
 
-  if (createError || !created.user) {
+  if (inviteError || !invited.user) {
     return NextResponse.json(
-      { error: createError?.message ?? 'Création du compte échouée' },
+      { error: inviteError?.message ?? "Échec de l'envoi de l'invitation" },
       { status: 500 },
     );
   }
 
-  // Le trigger handle_new_user a créé la ligne profiles avec role='salarie'.
-  // On enrichit avec prenom/nom + on promeut en admin si demandé.
+  // Le trigger handle_new_user a créé la ligne profiles avec role='salarie' par défaut.
+  // On enrichit prenom/nom + on promeut en admin si demandé.
   const { error: updateError } = await admin
     .from('profiles')
     .update({ prenom, nom, role })
-    .eq('id', created.user.id);
+    .eq('id', invited.user.id);
 
   if (updateError) {
     return NextResponse.json(
-      { error: `Compte créé mais profil non enrichi : ${updateError.message}` },
+      { error: `Email envoyé mais profil non enrichi : ${updateError.message}` },
       { status: 500 },
     );
   }

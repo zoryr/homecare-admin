@@ -7,6 +7,22 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 
 import { createClient } from '@/lib/supabase/client';
 
+// Si l'utilisateur arrive ici avec une session déjà active (par ex. après avoir
+// cliqué le lien d'un email d'invitation Supabase), on l'envoie au dashboard.
+// Le middleware vérifiera ensuite role=admin + actif et le rebalancera vers
+// /login?error=not_admin si besoin.
+function useRedirectIfSession() {
+  const router = useRouter();
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.replace('/admin/dashboard');
+      }
+    });
+  }, [router]);
+}
+
 type Step = 'email' | 'code';
 type Status = { kind: 'idle' } | { kind: 'sending' } | { kind: 'error'; message: string };
 
@@ -19,6 +35,7 @@ export default function LoginPage() {
 }
 
 function LoginForm() {
+  useRedirectIfSession();
   const router = useRouter();
   const params = useSearchParams();
   const externalError = params.get('error');

@@ -1,7 +1,9 @@
 import TeamTable, { type Member } from '@/components/admin/TeamTable';
+import { getCurrentProfile } from '@/lib/supabase/get-profile';
 import { createClient } from '@/lib/supabase/server';
 
 export default async function AdminsPage() {
+  const me = await getCurrentProfile();
   const supabase = createClient();
   const { data, error } = await supabase
     .from('profiles')
@@ -13,5 +15,5 @@ export default async function AdminsPage() {
     return <p className="text-rose-700">Erreur de chargement : {error.message}</p>;
   }
 
-  return <TeamTable role="admin" members={(data ?? []) as Member[]} />;
+  return <TeamTable role="admin" members={(data ?? []) as Member[]} currentUserId={me?.id ?? ''} />;
 }

@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import SignOutButton from './SignOutButton';
 import { ToastProvider } from '@/components/Toast';
 import { getCurrentProfile } from '@/lib/supabase/get-profile';
+import '@/styles/tiptap.css';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const profile = await getCurrentProfile();
@@ -26,6 +27,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <nav className="flex items-center gap-4 text-sm">
               <Link href="/admin/dashboard" className="text-slate-700 hover:text-slate-900">
                 Tableau de bord
+              </Link>
+              <Link href="/admin/actualites" className="text-slate-700 hover:text-slate-900">
+                Actualités
               </Link>
               <Link href="/admin/salaries" className="text-slate-700 hover:text-slate-900">
                 Salariés

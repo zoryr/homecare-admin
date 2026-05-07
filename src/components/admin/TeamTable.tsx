@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 
+import EditMemberModal from './EditMemberModal';
 import InviteModal from './InviteModal';
 import { useToast } from '@/components/Toast';
 
@@ -34,27 +35,18 @@ const LABELS: Record<Role, { title: string; inviteCta: string; emptyMsg: string 
 type Props = {
   role: Role;
   members: Member[];
+  currentUserId: string;
 };
 
-export default function TeamTable({ role, members }: Props) {
+export default function TeamTable({ role, members, currentUserId }: Props) {
   const router = useRouter();
   const { notify } = useToast();
-  const [open, setOpen] = useState(false);
-  const [pending, startTransition] = useTransition();
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [editing, setEditing] = useState<Member | null>(null);
+  const [, startTransition] = useTransition();
   const labels = LABELS[role];
 
-  async function toggleActif(id: string, actif: boolean) {
-    const res = await fetch('/api/admin/toggle-actif', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ userId: id, actif }),
-    });
-    if (!res.ok) {
-      const { error } = await res.json().catch(() => ({ error: 'Erreur inconnue' }));
-      notify('error', error ?? 'Erreur');
-      return;
-    }
-    notify('success', actif ? 'Compte réactivé' : 'Compte désactivé');
+  function refresh() {
     startTransition(() => router.refresh());
   }
 
@@ -63,7 +55,7 @@ export default function TeamTable({ role, members }: Props) {
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-slate-900">{labels.title}</h1>
         <button
-          onClick={() => setOpen(true)}
+          onClick={() => setInviteOpen(true)}
           className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
         >
           {labels.inviteCta}
@@ -104,11 +96,10 @@ export default function TeamTable({ role, members }: Props) {
                 </td>
                 <td className="px-4 py-2">
                   <button
-                    disabled={pending}
-                    onClick={() => toggleActif(m.id, !m.actif)}
-                    className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-100 disabled:opacity-50"
+                    onClick={() => setEditing(m)}
+                    className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-100"
                   >
-                    {m.actif ? 'Désactiver' : 'Réactiver'}
+                    Modifier
                   </button>
                 </td>
               </tr>
@@ -124,14 +115,28 @@ export default function TeamTable({ role, members }: Props) {
         </table>
       </div>
 
-      {open && (
+      {inviteOpen && (
         <InviteModal
           role={role}
-          onClose={() => setOpen(false)}
+          onClose={() => setInviteOpen(false)}
           onSuccess={() => {
-            setOpen(false);
-            notify('success', 'Invitation envoyée.');
-            startTransition(() => router.refresh());
+            setInviteOpen(false);
+            notify('success', 'Invitation envoyée. Un email a été adressé au destinataire.');
+            refresh();
+          }}
+          onError={(msg) => notify('error', msg)}
+        />
+      )}
+
+      {editing && (
+        <EditMemberModal
+          member={editing}
+          isSelf={editing.id === currentUserId}
+          onClose={() => setEditing(null)}
+          onSuccess={() => {
+            setEditing(null);
+            notify('success', 'Fiche mise à jour.');
+            refresh();
           }}
           onError={(msg) => notify('error', msg)}
         />
