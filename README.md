@@ -24,3 +24,18 @@ L'app tourne sur http://localhost:3000.
 - `src/lib/supabase/client.ts` — client Supabase navigateur
 - `src/lib/supabase/server.ts` — client Supabase Server Components / Route Handlers
 - `src/middleware.ts` — refresh de session sur chaque requête
+- `supabase/migrations/` — migrations SQL à coller dans le SQL Editor de Supabase
+
+## Promouvoir un compte en admin
+
+La table `profiles` est peuplée par un trigger sur `auth.users` : la ligne d'un nouvel
+utilisateur n'existe **qu'après sa première connexion magic link**. Donc pour promouvoir
+quelqu'un en admin :
+
+1. Le futur admin se connecte une 1re fois via magic link (cela crée sa ligne `profiles`).
+2. Exécuter dans le SQL Editor :
+   ```sql
+   update public.profiles set role = 'admin' where email = 'son@email.fr';
+   ```
+
+Si on lance le `update` avant la 1re connexion, il ne touche aucune ligne (silencieusement).
