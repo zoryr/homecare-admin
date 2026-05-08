@@ -19,7 +19,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <ToastProvider>
       <div className="flex min-h-screen flex-col bg-ink-50">
         <header className="sticky top-0 z-30 border-b border-ink-200 bg-white/85 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-6 py-3">
+          <div className="flex w-full flex-wrap items-center gap-4 px-6 py-3">
             <Link
               href="/admin/dashboard"
               className="flex items-center gap-3 transition hover:opacity-80"
@@ -38,8 +38,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               </span>
             </Link>
 
-            <div className="flex flex-1 flex-wrap items-center justify-end gap-3">
-              <AdminNav />
+            <AdminNav />
+
+            <div className="ml-auto flex items-center gap-3">
               <span className="hidden h-5 w-px bg-ink-200 sm:block" />
               <span className="hidden text-xs text-ink-500 md:inline">{profile.email}</span>
               <SignOutButton />
@@ -47,12 +48,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </div>
         </header>
 
-        <main className="brand-surface mx-auto w-full max-w-6xl flex-1 px-6 py-10">
+        <main className="brand-surface w-full flex-1 px-6 py-10">
           {children}
         </main>
 
         <footer className="border-t border-ink-200 bg-white">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3 text-xs text-ink-500">
+          <div className="flex items-center justify-between px-6 py-3 text-xs text-ink-500">
             <span>Home &amp; Care · Pays de Grasse</span>
             <span>agence06@homeandcare.fr</span>
           </div>

@@ -10,8 +10,7 @@ const ITEMS = [
   { href: '/admin/sondages', label: 'Sondages' },
   { href: '/admin/documents', label: 'Documents' },
   { href: '/admin/apropos', label: 'À propos' },
-  { href: '/admin/salaries', label: 'Salariés' },
-  { href: '/admin/admins', label: 'Admins' },
+  { href: '/admin/equipe', label: 'Équipe' },
 ];
 
 export default function AdminNav() {
