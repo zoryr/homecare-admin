@@ -1,0 +1,24 @@
+name: Vercel deploy on push to main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  trigger-vercel-hook:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Vercel deploy hook
+        env:
+          HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK_URL" ]; then
+            echo "::error::VERCEL_DEPLOY_HOOK secret is not set on the repo."
+            exit 1
+          fi
+          echo "Triggering Vercel deploy hook for commit $GITHUB_SHA"
+          response=$(curl -sS -o /tmp/body -w "%{http_code}" -X POST "$HOOK_URL")
+          echo "HTTP $response"
+          cat /tmp/body
+          test "$response" -ge 200 -a "$response" -lt 300
