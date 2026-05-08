@@ -8,6 +8,7 @@ const ITEMS = [
   { href: '/admin/actualites', label: 'Actualités' },
   { href: '/admin/notifications', label: 'Notifications' },
   { href: '/admin/sondages', label: 'Sondages' },
+  { href: '/admin/documents', label: 'Documents' },
   { href: '/admin/apropos', label: 'À propos' },
   { href: '/admin/salaries', label: 'Salariés' },
   { href: '/admin/admins', label: 'Admins' },

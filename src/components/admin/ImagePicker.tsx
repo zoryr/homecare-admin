@@ -17,6 +17,10 @@ type Props = {
   value: PickerValue;
   onChange: (next: PickerValue) => void;
   defaultImageUrl: string;
+  /** Bucket Supabase de destination pour les uploads (default: actus-images) */
+  bucket?: string;
+  /** Sous-dossier dans le bucket (default: couvertures) */
+  folder?: string;
 };
 
 type SearchProvider = Extract<ImageProvider, 'unsplash' | 'pexels'>;
@@ -30,7 +34,13 @@ const TAB_LABELS: Record<Tab, string> = {
   upload: 'Téléverser',
 };
 
-export default function ImagePicker({ value, onChange, defaultImageUrl }: Props) {
+export default function ImagePicker({
+  value,
+  onChange,
+  defaultImageUrl,
+  bucket = 'actus-images',
+  folder = 'couvertures',
+}: Props) {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab>('unsplash');
   const [query, setQuery] = useState('');
@@ -133,12 +143,12 @@ export default function ImagePicker({ value, onChange, defaultImageUrl }: Props)
     try {
       const supabase = createClient();
       const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-      const path = `couvertures/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
       const { error } = await supabase.storage
-        .from('actus-images')
+        .from(bucket)
         .upload(path, file, { contentType: file.type, upsert: false });
       if (error) throw error;
-      const { data } = supabase.storage.from('actus-images').getPublicUrl(path);
+      const { data } = supabase.storage.from(bucket).getPublicUrl(path);
       onChange({ url: data.publicUrl, source: { provider: 'upload' } });
       setOpen(false);
     } catch (err) {
