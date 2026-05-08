@@ -72,18 +72,18 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
   let partQuery = admin
     .from('survey_participations')
-    .select('user_id, created_at')
+    .select('user_id, submitted_at')
     .eq('survey_id', params.id);
-  if (from) partQuery = partQuery.gte('created_at', from);
-  if (to) partQuery = partQuery.lte('created_at', to);
+  if (from) partQuery = partQuery.gte('submitted_at', from);
+  if (to) partQuery = partQuery.lte('submitted_at', to);
   const { data: parts } = await partQuery;
-  const partsList = (parts ?? []) as Array<{ user_id: string; created_at: string }>;
+  const partsList = (parts ?? []) as Array<{ user_id: string; submitted_at: string }>;
 
   const participants: Participant[] = partsList.map((p) => ({
     user_id: p.user_id,
     prenom: null,
     nom: null,
-    submitted_at: p.created_at,
+    submitted_at: p.submitted_at,
   }));
 
   const { count: totalActive } = await admin
