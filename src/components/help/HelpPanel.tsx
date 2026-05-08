@@ -1,10 +1,11 @@
 'use client';
 
-import { Mail, X } from 'lucide-react';
-import { useEffect } from 'react';
+import { Loader2, Mail, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 import HelpSection from './HelpSection';
-import { getHelpPage } from '@/lib/help/pages';
+import { loadHelpPage } from '@/lib/help/pages';
+import type { HelpPage } from '@/lib/help/types';
 
 const SUPPORT_EMAIL = 'support@homeandcare.fr';
 
@@ -15,6 +16,29 @@ type Props = {
 };
 
 export default function HelpPanel({ pageId, open, onClose }: Props) {
+  const [page, setPage] = useState<HelpPage | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Charge la page d'aide à la demande (lazy import du module concerné)
+  useEffect(() => {
+    if (!pageId || !open) return;
+    let cancelled = false;
+    setLoading(true);
+    loadHelpPage(pageId)
+      .then((p) => {
+        if (!cancelled) setPage(p);
+      })
+      .catch(() => {
+        if (!cancelled) setPage(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [pageId, open]);
+
   // Esc → close
   useEffect(() => {
     if (!open) return;
@@ -34,8 +58,6 @@ export default function HelpPanel({ pageId, open, onClose }: Props) {
       document.body.style.overflow = prev;
     };
   }, [open]);
-
-  const page = pageId ? getHelpPage(pageId) : null;
 
   return (
     <>
@@ -83,7 +105,12 @@ export default function HelpPanel({ pageId, open, onClose }: Props) {
 
         {/* Contenu scrollable */}
         <div className="flex-1 space-y-3 overflow-y-auto px-6 py-5">
-          {page ? (
+          {loading && !page ? (
+            <div className="flex items-center gap-3 rounded-lg bg-ink-50 p-4 text-sm text-ink-500">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Chargement de l&apos;aide…
+            </div>
+          ) : page ? (
             page.sections.map((s) => (
               <HelpSection key={s.title} icon={s.icon} title={s.title}>
                 {s.content}
