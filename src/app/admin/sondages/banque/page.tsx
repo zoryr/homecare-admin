@@ -3,6 +3,7 @@ import { fr } from 'date-fns/locale';
 import Link from 'next/link';
 
 import BanqueFilters from './BanqueFilters';
+import SondagesTabs from '@/components/admin/sondages/SondagesTabs';
 import { createClient } from '@/lib/supabase/server';
 import { QUESTION_TYPES } from '@/lib/sondages/constants';
 import type { QuestionType, SurveyQuestion } from '@/lib/sondages/types';
@@ -65,7 +66,8 @@ export default async function BanquePage({ searchParams }: { searchParams: SP })
         </Link>
       </header>
 
-      <div className="sticky top-[60px] z-10 mb-6 rounded-xl border border-ink-200 bg-white/95 p-4 shadow-sm backdrop-blur">
+      <div className="sticky top-[60px] z-10 mb-6 space-y-3 rounded-xl border border-ink-200 bg-white/95 p-4 shadow-sm backdrop-blur">
+        <SondagesTabs />
         <BanqueFilters initialQuery={q} initialTags={tags} initialType={typeFilter} />
       </div>
 
