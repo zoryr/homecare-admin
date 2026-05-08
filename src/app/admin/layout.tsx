@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation';
 
 import AdminNav from './AdminNav';
 import SignOutButton from './SignOutButton';
+import AutoHelpButton from '@/components/help/AutoHelpButton';
+import HelpProvider from '@/components/help/HelpProvider';
 import { ToastProvider } from '@/components/Toast';
 import { getCurrentProfile } from '@/lib/supabase/get-profile';
 import '@/styles/tiptap.css';
@@ -17,7 +19,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <ToastProvider>
-      <div className="flex min-h-screen flex-col bg-ink-50">
+      <HelpProvider>
+        <div className="flex min-h-screen flex-col bg-ink-50">
         <header className="sticky top-0 z-30 border-b border-ink-200 bg-white/85 backdrop-blur">
           <div className="flex w-full flex-wrap items-center gap-4 px-6 py-3">
             <Link
@@ -58,7 +61,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <span>agence06@homeandcare.fr</span>
           </div>
         </footer>
-      </div>
+
+        <AutoHelpButton />
+        </div>
+      </HelpProvider>
     </ToastProvider>
   );
 }

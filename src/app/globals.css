@@ -22,6 +22,20 @@ body {
   font-feature-settings: 'cv11', 'ss01', 'ss03';
 }
 
+/* Prose minimaliste pour le panneau d'aide */
+.prose-help h4 { font-weight: 600; color: rgb(31 41 55); margin-top: 0.75rem; margin-bottom: 0.25rem; font-size: 0.875rem; }
+.prose-help p { margin-top: 0.5rem; margin-bottom: 0.5rem; line-height: 1.55; }
+.prose-help p:first-child { margin-top: 0; }
+.prose-help ul { list-style-type: disc; padding-left: 1.25rem; margin-top: 0.4rem; margin-bottom: 0.4rem; }
+.prose-help ol { list-style-type: decimal; padding-left: 1.25rem; margin-top: 0.4rem; margin-bottom: 0.4rem; }
+.prose-help li { margin-top: 0.15rem; margin-bottom: 0.15rem; }
+.prose-help strong { font-weight: 600; color: rgb(17 24 39); }
+.prose-help em { font-style: italic; }
+.prose-help code { font-family: ui-monospace, SFMono-Regular, monospace; background: rgb(243 244 246); padding: 0.05rem 0.3rem; border-radius: 4px; font-size: 0.8125rem; }
+.prose-help dl { margin-top: 0.5rem; }
+.prose-help dt { font-weight: 600; color: rgb(31 41 55); margin-top: 0.5rem; }
+.prose-help dd { margin-left: 0; margin-top: 0.15rem; color: rgb(75 85 99); }
+
 /* Surface décorative subtile (haut de page) — donne un peu de chaleur */
 .brand-surface {
   background:
