@@ -17,6 +17,7 @@ import {
 } from '@dnd-kit/sortable';
 import {
   ArrowLeft,
+  BarChart3,
   Image as ImageIcon,
   ListChecks,
   Lock,
@@ -277,11 +278,22 @@ export default function SurveyBuilder({ initialSurvey, initialItems, initialQues
           <ArrowLeft className="h-4 w-4" />
           Retour aux sondages
         </Link>
-        <span
-          className={`rounded-full px-3 py-1 text-xs font-medium ${STATUT_BADGE[survey.statut]}`}
-        >
-          {STATUT_LABEL[survey.statut]}
-        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          {survey.statut !== 'brouillon' ? (
+            <Link
+              href={`/admin/sondages/${survey.id}/resultats`}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-brand-300 bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700 transition hover:bg-brand-100"
+            >
+              <BarChart3 className="h-3.5 w-3.5" />
+              Voir les résultats
+            </Link>
+          ) : null}
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-medium ${STATUT_BADGE[survey.statut]}`}
+          >
+            {STATUT_LABEL[survey.statut]}
+          </span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_minmax(0,1fr)]">
