@@ -76,7 +76,7 @@ export async function POST(_request: NextRequest, { params }: { params: { id: st
           message: existing.titre.slice(0, 200),
           source: 'auto_sondage',
           source_id: existing.id,
-          deeplink_path: `/(modal)/sondages/${existing.id}`,
+          deeplink_path: `/sondages/${existing.id}`,
           audience: 'all',
           created_by: caller.id,
         });
