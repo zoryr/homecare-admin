@@ -17,10 +17,14 @@ alter function public.set_survey_question_modifie_le() set search_path = public;
 alter function public.set_survey_modifie_le() set search_path = public;
 alter function public.set_document_modifie_le() set search_path = public;
 
--- 2) Sécurité is_admin : retirer l'execute aux rôles publics
-revoke execute on function public.is_admin() from anon, authenticated, public;
--- (Les policies USING is_admin() continuent de fonctionner car PostgreSQL
---  les évalue avec le rôle propriétaire de la fonction.)
+-- 2) Sécurité is_admin : retirer l'execute à anon + public uniquement.
+--    On GARDE EXECUTE pour authenticated car les policies RLS (ex.
+--    admins_read_all_profiles, admins_all_*) s'évaluent dans le contexte
+--    du rôle authenticated au moment du SELECT et appellent is_admin().
+--    Sans EXECUTE pour authenticated, ces policies échouent silencieusement
+--    et l'utilisateur admin se voit refuser l'accès à ses propres tables.
+revoke execute on function public.is_admin() from anon, public;
+grant execute on function public.is_admin() to authenticated;
 
 -- 3) Storage : durcir les policies SELECT broad
 drop policy if exists "anyone_read_documents_fichiers" on storage.objects;
