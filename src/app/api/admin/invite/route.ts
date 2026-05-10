@@ -59,6 +59,19 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Garantit qu'une entrée auth.identities provider='email' existe.
+  // Sans ça, le signInWithOtp suivant renvoie "Database error finding user"
+  // car Supabase Auth lookup à la fois auth.users et auth.identities, et
+  // inviteUserByEmail ne crée pas toujours l'identity selon les versions.
+  // Best-effort : on n'échoue pas l'invitation si ce call rate.
+  const { error: identityError } = await admin.rpc('ensure_email_identity', {
+    p_user_id: invited.user.id,
+    p_email: email,
+  });
+  if (identityError) {
+    console.warn('[invite] ensure_email_identity failed:', identityError.message);
+  }
+
   // Le trigger handle_new_user a créé la ligne profiles avec role='salarie' par défaut.
   // On enrichit prenom/nom + on promeut en admin si demandé.
   const { error: updateError } = await admin
