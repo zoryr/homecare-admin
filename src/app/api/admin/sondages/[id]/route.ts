@@ -7,6 +7,8 @@ import type { ImageSource } from '@/lib/images/types';
 type Body = {
   titre?: string;
   description?: string;
+  texte_intro?: string;
+  texte_fin?: string;
   image_couverture_url?: string | null;
   image_source?: ImageSource | null;
   open_at?: string | null;
@@ -46,6 +48,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   type Update = {
     titre?: string;
     description?: string;
+    texte_intro?: string;
+    texte_fin?: string;
     image_couverture_url?: string | null;
     image_source?: ImageSource | null;
     open_at?: string | null;
@@ -54,6 +58,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   const update: Update = {};
   if (typeof body.titre === 'string') update.titre = body.titre.trim();
   if (typeof body.description === 'string') update.description = body.description;
+  if (typeof body.texte_intro === 'string') update.texte_intro = body.texte_intro;
+  if (typeof body.texte_fin === 'string') update.texte_fin = body.texte_fin;
   if (body.image_couverture_url !== undefined) update.image_couverture_url = body.image_couverture_url;
   if (body.image_source !== undefined) update.image_source = body.image_source;
   if (body.open_at !== undefined) update.open_at = body.open_at;

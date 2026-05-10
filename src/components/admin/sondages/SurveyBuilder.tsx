@@ -104,6 +104,8 @@ export default function SurveyBuilder({ initialSurvey, initialItems, initialQues
       body: JSON.stringify({
         titre: survey.titre,
         description: survey.description,
+        texte_intro: survey.texte_intro,
+        texte_fin: survey.texte_fin,
         image_couverture_url: survey.image_couverture_url,
         image_source: survey.image_source,
         open_at: survey.open_at,
@@ -310,12 +312,39 @@ export default function SurveyBuilder({ initialSurvey, initialItems, initialQues
                 className="block w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-60"
               />
             </Field>
-            <Field label="Description" help="Affichée en haut du sondage côté salarié.">
+            <Field label="Description" help="Phrase courte affichée dans la liste mobile.">
               <textarea
                 value={survey.description}
                 onChange={(e) => patchSurvey({ description: e.target.value })}
                 disabled={isReadOnly}
+                rows={2}
+                placeholder="Ex. : 5 minutes pour nous donner votre ressenti."
+                className="block w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-60"
+              />
+            </Field>
+            <Field
+              label="Texte d'introduction (optionnel)"
+              help="Affiché en haut du sondage avant les questions. Idéal pour expliquer le but et rappeler l'anonymat."
+            >
+              <textarea
+                value={survey.texte_intro}
+                onChange={(e) => patchSurvey({ texte_intro: e.target.value })}
+                disabled={isReadOnly}
+                rows={4}
+                placeholder="Ex. : Bonjour ! Ce sondage de 8 questions vise à recueillir votre ressenti sur la charge de travail. Vos réponses sont 100% anonymes."
+                className="block w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-60"
+              />
+            </Field>
+            <Field
+              label="Texte de remerciement (optionnel)"
+              help="Affiché après l'envoi des réponses. Si vide, un message générique est utilisé."
+            >
+              <textarea
+                value={survey.texte_fin}
+                onChange={(e) => patchSurvey({ texte_fin: e.target.value })}
+                disabled={isReadOnly}
                 rows={3}
+                placeholder="Ex. : Merci pour votre participation ! Les résultats seront partagés en réunion d'équipe début juin."
                 className="block w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-60"
               />
             </Field>

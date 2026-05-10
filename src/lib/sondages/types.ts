@@ -45,6 +45,8 @@ export interface Survey {
   id: string;
   titre: string;
   description: string;
+  texte_intro: string;
+  texte_fin: string;
   image_couverture_url: string | null;
   image_source: ImageSource | null;
   statut: SurveyStatut;
