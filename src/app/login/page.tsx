@@ -3,12 +3,11 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
 import { createClient } from '@/lib/supabase/client';
 
-// Si l'utilisateur arrive ici avec une session déjà active (par ex. après avoir
-// cliqué le lien d'un email d'invitation Supabase), on l'envoie au dashboard.
+// Si l'utilisateur arrive avec une session déjà active, on l'envoie au dashboard.
 // Le middleware vérifiera ensuite role=admin + actif et le rebalancera vers
 // /login?error=not_admin si besoin.
 function useRedirectIfSession() {
@@ -16,14 +15,11 @@ function useRedirectIfSession() {
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        router.replace('/admin/dashboard');
-      }
+      if (session) router.replace('/admin/dashboard');
     });
   }, [router]);
 }
 
-type Step = 'email' | 'code';
 type Status = { kind: 'idle' } | { kind: 'sending' } | { kind: 'error'; message: string };
 
 export default function LoginPage() {
@@ -40,57 +36,32 @@ function LoginForm() {
   const params = useSearchParams();
   const externalError = params.get('error');
 
-  const [step, setStep] = useState<Step>('email');
-  const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
+  const [matricule, setMatricule] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
-  const codeInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (step === 'code') codeInputRef.current?.focus();
-  }, [step]);
-
-  async function requestCode(event?: React.FormEvent<HTMLFormElement>) {
-    event?.preventDefault();
-    if (!email) return;
-    setStatus({ kind: 'sending' });
-
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: false },
-    });
-
-    if (error) {
-      setStatus({ kind: 'error', message: error.message });
-      return;
-    }
-    setStatus({ kind: 'idle' });
-    setCode('');
-    setStep('code');
-  }
-
-  async function verifyCode(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (code.length !== 6) return;
+    if (!matricule.trim() || !password) return;
     setStatus({ kind: 'sending' });
 
     const supabase = createClient();
-    const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' });
+    const email = `${matricule.toLowerCase().trim()}@infocare.local`;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      setStatus({ kind: 'error', message: 'Code invalide ou expiré.' });
+      const message = /invalid login credentials/i.test(error.message)
+        ? 'Matricule ou mot de passe incorrect.'
+        : 'Connexion impossible. Réessayez.';
+      setStatus({ kind: 'error', message });
       return;
     }
 
+    // Le middleware vérifie role=admin + actif ; un non-admin sera renvoyé ici
+    // avec ?error=not_admin.
     router.push('/admin/dashboard');
     router.refresh();
-  }
-
-  function backToEmail() {
-    setStep('email');
-    setCode('');
-    setStatus({ kind: 'idle' });
   }
 
   return (
@@ -101,111 +72,78 @@ function LoginForm() {
 
       <div className="w-full max-w-sm rounded-2xl border border-ink-200 bg-white p-7 shadow-soft">
         <h1 className="font-display text-2xl font-medium text-ink-900">Connexion</h1>
+        <p className="mt-1 text-sm text-ink-500">Espace administration · matricule + mot de passe.</p>
 
-        {externalError === 'auth_failed' && step === 'email' && (
+        {externalError === 'auth_failed' && (
           <p className="mt-4 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-            La connexion a échoué. Réessaie.
+            La connexion a échoué. Réessayez.
           </p>
         )}
-        {externalError === 'not_admin' && step === 'email' && (
+        {externalError === 'not_admin' && (
           <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
             Ce compte n&apos;a pas accès à l&apos;espace administration.
           </p>
         )}
 
-        {step === 'email' ? (
-          <>
-            <p className="mt-1 text-sm text-ink-500">
-              Saisissez votre email. Un code à 6 chiffres vous sera envoyé.
-            </p>
-            <form onSubmit={requestCode} className="mt-6 space-y-4">
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-ink-700">Email</label>
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={status.kind === 'sending'}
-                  className="mt-1.5 block w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm text-ink-900 shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:bg-ink-50"
-                  placeholder="prenom.nom@homeandcare.fr"
-                />
-              </div>
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <div>
+            <label htmlFor="matricule" className="block text-sm font-medium text-ink-700">
+              Matricule
+            </label>
+            <input
+              id="matricule"
+              type="text"
+              required
+              autoCapitalize="none"
+              autoComplete="username"
+              value={matricule}
+              onChange={(e) => setMatricule(e.target.value)}
+              disabled={status.kind === 'sending'}
+              className="mt-1.5 block w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm text-ink-900 shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:bg-ink-50"
+              placeholder="IN2021070001"
+            />
+          </div>
 
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-ink-700">
+              Mot de passe
+            </label>
+            <div className="relative mt-1.5">
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={status.kind === 'sending'}
+                className="block w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 pr-16 text-sm text-ink-900 shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:bg-ink-50"
+                placeholder="••••••"
+              />
               <button
-                type="submit"
-                disabled={status.kind === 'sending' || !email}
-                className="btn-primary w-full"
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-xs font-medium text-ink-500 transition hover:text-ink-800"
               >
-                {status.kind === 'sending' ? 'Envoi…' : 'Recevoir le code'}
+                {showPassword ? 'Masquer' : 'Afficher'}
               </button>
+            </div>
+          </div>
 
-              {status.kind === 'error' && (
-                <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{status.message}</p>
-              )}
-            </form>
-          </>
-        ) : (
-          <>
-            <p className="mt-1 text-sm text-ink-500">
-              Code envoyé à <span className="font-medium text-ink-900">{email}</span>.
+          <button
+            type="submit"
+            disabled={status.kind === 'sending' || !matricule.trim() || !password}
+            className="btn-primary w-full"
+          >
+            {status.kind === 'sending' ? 'Connexion…' : 'Se connecter'}
+          </button>
+
+          {status.kind === 'error' && (
+            <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+              {status.message}
             </p>
-            <form onSubmit={verifyCode} className="mt-6 space-y-4">
-              <div>
-                <label htmlFor="code" className="block text-sm font-medium text-ink-700">
-                  Code à 6 chiffres
-                </label>
-                <input
-                  ref={codeInputRef}
-                  id="code"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  autoComplete="one-time-code"
-                  maxLength={6}
-                  required
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                  disabled={status.kind === 'sending'}
-                  className="mt-1.5 block w-full rounded-lg border border-ink-200 bg-white px-3 py-3 text-center font-display text-2xl tracking-[0.5em] text-ink-900 shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:bg-ink-50"
-                  placeholder="••••••"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={status.kind === 'sending' || code.length !== 6}
-                className="btn-primary w-full"
-              >
-                {status.kind === 'sending' ? 'Vérification…' : 'Valider'}
-              </button>
-
-              {status.kind === 'error' && (
-                <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{status.message}</p>
-              )}
-
-              <div className="flex justify-between pt-1 text-sm">
-                <button
-                  type="button"
-                  onClick={() => requestCode()}
-                  disabled={status.kind === 'sending'}
-                  className="text-brand-700 underline-offset-2 transition hover:underline disabled:opacity-50"
-                >
-                  Renvoyer un code
-                </button>
-                <button
-                  type="button"
-                  onClick={backToEmail}
-                  disabled={status.kind === 'sending'}
-                  className="text-ink-600 underline-offset-2 transition hover:underline disabled:opacity-50"
-                >
-                  Modifier l&apos;email
-                </button>
-              </div>
-            </form>
-          </>
-        )}
+          )}
+        </form>
       </div>
 
       <p className="mt-10 text-xs uppercase tracking-[0.2em] text-ink-400">

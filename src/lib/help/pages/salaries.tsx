@@ -1,11 +1,11 @@
-import { HelpCircle, Info, Lightbulb, MousePointerClick } from 'lucide-react';
+import { HelpCircle, Info, KeyRound, Lightbulb, UserPlus, UserX } from 'lucide-react';
 
 import type { HelpPage } from '../types';
 
 export const salaries: HelpPage = {
   id: 'salaries',
-  title: 'Équipe',
-  subtitle: 'Gérer salariés et administrateurs',
+  title: 'Salariés',
+  subtitle: 'Gérer les comptes (matricule + mot de passe)',
   sections: [
     {
       icon: Info,
@@ -13,77 +13,82 @@ export const salaries: HelpPage = {
       content: (
         <>
           <p>
-            C’est ici que vous gérez <strong>qui a accès à l’app</strong>. Deux vues, basculables
-            via les pills en haut&nbsp;:
+            C’est ici que vous gérez <strong>les comptes des salariés</strong> qui accèdent à
+            l’app mobile. Chaque salarié se connecte avec un <strong>matricule</strong> et un{' '}
+            <strong>mot de passe</strong> que vous lui communiquez. <strong>Aucun email n’est
+            envoyé</strong>&nbsp;: tout se transmet à l’oral.
           </p>
-          <ul>
-            <li>
-              <strong>Salariés</strong>&nbsp;: les utilisateurs «&nbsp;classiques&nbsp;» qui ont
-              accès à l’app mobile uniquement.
-            </li>
-            <li>
-              <strong>Administrateurs</strong>&nbsp;: ceux qui ont aussi accès à cette interface
-              admin web (pour gérer le contenu).
-            </li>
-          </ul>
         </>
       ),
     },
     {
-      icon: MousePointerClick,
-      title: 'Comment ça marche ?',
+      icon: UserPlus,
+      title: 'Créer un nouveau salarié',
       content: (
         <>
-          <h4>Inviter un membre</h4>
-          <p>
-            Bouton «&nbsp;+ Inviter…&nbsp;» en haut à droite. Vous renseignez&nbsp;:
-          </p>
           <ul>
-            <li>L’<strong>email</strong> du salarié (vérifiez bien&nbsp;!)</li>
-            <li>Son <strong>prénom</strong> et son <strong>nom</strong></li>
-          </ul>
-          <p>
-            Un email avec le mode d’emploi est envoyé automatiquement. Le salarié n’a qu’à ouvrir
-            l’app et entrer son email&nbsp;: il recevra un code à 6 chiffres pour se connecter.
-          </p>
-
-          <h4>Activer / Désactiver</h4>
-          <p>
-            Sur chaque ligne, un toggle <strong>Actif</strong>&nbsp;:
-          </p>
-          <ul>
+            <li>Récupérez le <strong>matricule</strong> dans votre logiciel RH.</li>
+            <li>Cliquez «&nbsp;<strong>+ Nouveau salarié</strong>&nbsp;».</li>
             <li>
-              <strong>Actif ON</strong>&nbsp;: le salarié peut se connecter et reçoit les
-              notifications.
+              Saisissez le <strong>matricule</strong> et un <strong>mot de passe</strong> (le
+              prénom est optionnel, pour votre gestion interne).
             </li>
             <li>
-              <strong>Actif OFF</strong>&nbsp;: l’accès est bloqué, mais l’historique de
-              l’utilisateur (réponses sondages, etc.) est conservé.
+              À la validation, une fenêtre affiche le matricule et le mot de passe{' '}
+              <strong>en grand</strong>. <strong>Communiquez-les au salarié à l’oral</strong>{' '}
+              (téléphone ou face-à-face). Vous pouvez copier les identifiants d’un clic.
             </li>
           </ul>
+          <p>
+            ⚠ Une fois la fenêtre fermée, le mot de passe n’est plus affiché nulle part.
+          </p>
+        </>
+      ),
+    },
+    {
+      icon: KeyRound,
+      title: 'Réinitialiser un mot de passe',
+      content: (
+        <>
+          <p>
+            Sur la ligne du salarié, cliquez l’icône <strong>clé</strong>, saisissez un nouveau
+            mot de passe, puis <strong>dictez-le</strong> au salarié. Utile quand un salarié a
+            oublié son mot de passe&nbsp;: il vous appelle, vous en générez un nouveau.
+          </p>
+        </>
+      ),
+    },
+    {
+      icon: UserX,
+      title: 'Désactiver un salarié',
+      content: (
+        <>
+          <p>
+            Cliquez l’icône <strong>désactiver</strong> sur la ligne du salarié&nbsp;: il perd{' '}
+            <strong>immédiatement</strong> l’accès à l’app. Ses données (réponses aux sondages,
+            etc.) sont conservées. Vous pourrez le <strong>réactiver</strong> plus tard si besoin.
+          </p>
         </>
       ),
     },
     {
       icon: Lightbulb,
-      title: 'Conseils & bonnes pratiques',
+      title: 'Bonnes pratiques',
       content: (
-        <>
-          <ul>
-            <li>
-              <strong>Désactiver plutôt que supprimer</strong>. La désactivation bloque l’accès
-              tout en gardant les statistiques cohérentes (sondages, vues, etc.).
-            </li>
-            <li>
-              <strong>Vérifiez l’email avant invitation</strong>. Une faute de frappe et le
-              salarié ne reçoit jamais son code.
-            </li>
-            <li>
-              <strong>Limitez le nombre d’admins</strong>. 2 à 3 personnes max. Trop d’admins =
-              risque de modifications conflictuelles.
-            </li>
-          </ul>
-        </>
+        <ul>
+          <li>
+            Choisissez un mot de passe <strong>simple à dicter</strong> (évitez les caractères
+            spéciaux compliqués).
+          </li>
+          <li>
+            Ne transmettez <strong>jamais</strong> les identifiants par SMS ou email, pour éviter
+            les fuites. À l’oral uniquement.
+          </li>
+          <li>
+            En cas de <strong>départ d’un salarié</strong>&nbsp;: désactivez son compte
+            immédiatement.
+          </li>
+        </ul>
       ),
     },
     {
@@ -91,29 +96,20 @@ export const salaries: HelpPage = {
       title: 'Questions fréquentes',
       content: (
         <dl>
-          <dt>Le salarié n’a pas reçu son email d’invitation, que faire&nbsp;?</dt>
+          <dt>Un salarié a perdu son mot de passe&nbsp;?</dt>
           <dd>
-            Vérifier les <strong>spams / courriers indésirables</strong>. Si rien&nbsp;: relancer
-            l’invitation depuis cette page (rouvrez la fiche du salarié et cliquez sur «&nbsp;Renvoyer
-            l’invitation&nbsp;»). Si le salarié n’a toujours rien&nbsp;: vérifier l’email saisi
-            (faute de frappe&nbsp;?), et si OK contacter le support.
+            Utilisez «&nbsp;Réinitialiser le mot de passe&nbsp;» (icône clé), puis dictez-lui le
+            nouveau.
           </dd>
-          <dt>Comment changer l’email d’un salarié&nbsp;?</dt>
+          <dt>Un salarié a quitté l’entreprise&nbsp;?</dt>
           <dd>
-            L’email est lié à l’authentification et ne peut pas être modifié directement.
-            Désactivez le compte actuel et créez-en un nouveau avec le bon email.
+            <strong>Désactivez</strong> son compte (ne le supprimez pas)&nbsp;: l’accès est coupé
+            et l’historique reste cohérent.
           </dd>
-          <dt>Que se passe-t-il quand je désactive un salarié&nbsp;?</dt>
+          <dt>Je veux réutiliser un matricule&nbsp;?</dt>
           <dd>
-            Il ne peut plus se connecter à l’app (s’il est déjà connecté, sa prochaine action
-            sera bloquée). Il ne reçoit plus de notifications. Mais ses anciennes participations
-            aux sondages, vues d’actus, etc. restent dans l’historique.
-          </dd>
-          <dt>Différence salarié / administrateur&nbsp;?</dt>
-          <dd>
-            Un <strong>salarié</strong> a accès à l’app mobile uniquement (lecture). Un{' '}
-            <strong>administrateur</strong> a accès en plus à cette interface admin web pour
-            gérer tout le contenu.
+            Impossible tant que l’ancien compte existe (la suppression définitive de compte est
+            prévue pour une version ultérieure).
           </dd>
         </dl>
       ),
