@@ -102,7 +102,7 @@ export default function EditMemberModal({ member, isSelf, onClose, onSuccess, on
               />
             </div>
             {isSelf && (
-              <p className="mt-1 text-xs text-ink-500">Tu ne peux pas te retirer le rôle admin.</p>
+              <p className="mt-1 text-xs text-ink-500">Vous ne pouvez pas vous retirer le rôle admin.</p>
             )}
           </fieldset>
 

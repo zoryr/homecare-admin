@@ -76,7 +76,7 @@ export default async function SondagesListPage({ searchParams }: { searchParams:
           </p>
           <h1 className="mt-1 font-display text-4xl font-medium text-ink-900">Mes sondages</h1>
           <p className="mt-2 text-sm text-ink-500">
-            Crée, publie et suis l’engagement de tes sondages internes.
+            Créez, publiez et suivez l’engagement de vos sondages internes.
           </p>
         </div>
         <CreateSondageButton />
@@ -91,7 +91,7 @@ export default async function SondagesListPage({ searchParams }: { searchParams:
         <p className="rounded-2xl border border-dashed border-ink-300 bg-white p-12 text-center text-ink-500">
           {q || statutFilter
             ? 'Aucun sondage ne correspond à ces critères.'
-            : 'Aucun sondage pour le moment. Crée le premier.'}
+            : 'Aucun sondage pour le moment. Créez le premier.'}
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

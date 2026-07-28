@@ -85,7 +85,7 @@ export default async function ActualitesListPage({
         <p className="rounded-2xl border border-dashed border-ink-300 bg-white p-12 text-center text-ink-500">
           {q || filter !== 'toutes'
             ? "Aucune actualité ne correspond à ces critères."
-            : "Aucune actualité pour le moment. Crée la première."}
+            : "Aucune actualité pour le moment. Créez la première."}
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">

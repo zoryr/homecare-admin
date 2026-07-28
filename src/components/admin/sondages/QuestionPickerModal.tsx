@@ -89,7 +89,7 @@ export default function QuestionPickerModal({ alreadyUsedIds, onClose, onPick }:
               Piocher dans la banque
             </h2>
             <p className="mt-0.5 text-xs text-ink-500">
-              Sélectionne une question existante. Les questions déjà utilisées sont grisées.
+              Sélectionnez une question existante. Les questions déjà utilisées sont grisées.
             </p>
           </div>
           <button

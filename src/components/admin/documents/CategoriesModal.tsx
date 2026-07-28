@@ -182,7 +182,7 @@ export default function CategoriesModal({ categories, onClose, onChange }: Props
         <div className="flex-1 overflow-auto px-6 py-4">
           {list.length === 0 ? (
             <p className="rounded-lg border border-dashed border-ink-300 bg-ink-50 p-6 text-center text-sm text-ink-500">
-              Aucune catégorie pour le moment. Crée la première ci-dessous.
+              Aucune catégorie pour le moment. Créez la première ci-dessous.
             </p>
           ) : (
             <DndContext

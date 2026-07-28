@@ -116,7 +116,7 @@ function LoginForm() {
         {step === 'email' ? (
           <>
             <p className="mt-1 text-sm text-ink-500">
-              Saisis ton email. Un code à 6 chiffres te sera envoyé.
+              Saisissez votre email. Un code à 6 chiffres vous sera envoyé.
             </p>
             <form onSubmit={requestCode} className="mt-6 space-y-4">
               <div>

@@ -63,7 +63,7 @@ export default function RichTextEditor({ value, onChange, onUploadImage, placeho
       StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
       Underline,
       LinkExt.configure({ openOnClick: false, HTMLAttributes: { rel: 'noopener noreferrer' } }),
-      Placeholder.configure({ placeholder: placeholder ?? 'Rédige ton actualité…' }),
+      Placeholder.configure({ placeholder: placeholder ?? 'Rédigez votre actualité…' }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       TextStyle,
       Color,

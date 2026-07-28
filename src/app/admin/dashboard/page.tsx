@@ -51,7 +51,7 @@ export default async function DashboardPage() {
         <ActionCard
           eyebrow="Équipe"
           title="Inviter un salarié"
-          description="Envoie un email de bienvenue. Le salarié reçoit un lien pour ouvrir l'app mobile."
+          description="Envoyez un email de bienvenue. Le salarié reçoit un lien pour ouvrir l'app mobile."
           cta="Voir les salariés"
           href="/admin/salaries"
         />

@@ -66,7 +66,7 @@ export default function NotificationComposer({ activeProfiles, onClose, onSucces
       return;
     }
     if (audience === 'selection' && selected.size === 0) {
-      onError('Sélectionne au moins une personne.');
+      onError('Sélectionnez au moins une personne.');
       return;
     }
 

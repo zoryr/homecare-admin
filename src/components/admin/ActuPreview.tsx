@@ -109,7 +109,7 @@ export default function ActuPreview(props: Props) {
     const descSafe = description ? `<p class="desc">${escapeHtml(description)}</p>` : '';
     const corpsHtml = corps && corps.replace(/<[^>]+>/g, '').trim()
       ? `<div class="body">${corps}</div>`
-      : `<div class="empty">Le contenu apparaîtra ici dès que tu commenceras à rédiger.</div>`;
+      : `<div class="empty">Le contenu apparaîtra ici dès que vous commencerez à rédiger.</div>`;
 
     return `<!DOCTYPE html>
 <html lang="fr">

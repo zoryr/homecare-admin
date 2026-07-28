@@ -70,7 +70,7 @@ export default function NotificationsClient({ settings, notifs, totalActive, act
         </p>
         <h1 className="mt-1 font-display text-4xl font-medium text-ink-900">Notifications</h1>
         <p className="mt-2 text-sm text-ink-500">
-          {totalActive} salarié{totalActive > 1 ? 's actifs' : ' actif'} pourront recevoir tes messages.
+          {totalActive} salarié{totalActive > 1 ? 's actifs' : ' actif'} pourront recevoir vos messages.
         </p>
       </header>
 
@@ -80,7 +80,7 @@ export default function NotificationsClient({ settings, notifs, totalActive, act
           Quand votre équipe est-elle prévenue&nbsp;?
         </h2>
         <p className="mt-1 text-sm text-ink-500">
-          Choisis ce qui déclenche un envoi automatique.
+          Choisissez ce qui déclenche un envoi automatique.
         </p>
 
         <div className="mt-5 space-y-3">
@@ -234,7 +234,7 @@ export default function NotificationsClient({ settings, notifs, totalActive, act
           onClose={() => setTestOpen(false)}
           onSent={() => {
             setTestOpen(false);
-            notify('success', "Test envoyé. Vérifie ton téléphone.");
+            notify('success', "Test envoyé. Vérifiez votre téléphone.");
           }}
           onError={(msg) => notify('error', msg)}
         />
@@ -313,7 +313,7 @@ function TestModal({
   onError: (msg: string) => void;
 }) {
   const [titre, setTitre] = useState('Test Home & Care');
-  const [message, setMessage] = useState('Ceci est un test. Si tu vois ce message, c\'est que ça marche.');
+  const [message, setMessage] = useState('Ceci est un test. Si vous voyez ce message, c\'est que ça marche.');
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSend() {
@@ -337,7 +337,7 @@ function TestModal({
       <div className="w-full max-w-md rounded-2xl bg-white p-7 shadow-soft">
         <h2 className="font-display text-2xl font-medium text-ink-900">Notification de test</h2>
         <p className="mt-2 text-sm text-ink-500">
-          Envoyée seulement à ton téléphone (utile pour vérifier que tout fonctionne).
+          Envoyée seulement à votre téléphone (utile pour vérifier que tout fonctionne).
         </p>
         <div className="mt-5 space-y-4">
           <div>

@@ -90,7 +90,7 @@ export default function DocumentEditor({ initial, categories: initialCats }: Pro
       return false;
     }
     if (!file) {
-      notify('error', 'Téléverse un fichier (PDF ou image).');
+      notify('error', 'Téléversez un fichier (PDF ou image).');
       return false;
     }
     return true;
@@ -148,7 +148,7 @@ export default function DocumentEditor({ initial, categories: initialCats }: Pro
     if (!targetId) {
       // En création il faut d'abord sauvegarder pour avoir un id
       setBusyAction(null);
-      notify('error', 'Enregistre d’abord le document avant de publier.');
+      notify('error', 'Enregistrez d’abord le document avant de publier.');
       return;
     }
 

@@ -134,7 +134,7 @@ function PreviewText({ options }: { options: QuestionOptions }) {
     return (
       <div className="rounded-lg border border-ink-200 bg-ink-50/50 px-3 py-2">
         <p className="text-sm italic text-ink-400">
-          {options.placeholder ?? 'Écris ta réponse…'}
+          {options.placeholder ?? 'Écrivez votre réponse…'}
         </p>
         <p className="mt-2 text-right text-xs text-ink-400">0 / {max}</p>
       </div>
@@ -142,7 +142,7 @@ function PreviewText({ options }: { options: QuestionOptions }) {
   }
   return (
     <div className="rounded-lg border border-ink-200 bg-ink-50/50 px-3 py-2 text-sm italic text-ink-400">
-      {options.placeholder ?? 'Écris ta réponse…'}
+      {options.placeholder ?? 'Écrivez votre réponse…'}
     </div>
   );
 }

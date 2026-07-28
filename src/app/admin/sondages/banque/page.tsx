@@ -75,7 +75,7 @@ export default async function BanquePage({ searchParams }: { searchParams: SP })
         <p className="rounded-2xl border border-dashed border-ink-300 bg-white p-12 text-center text-ink-500">
           {q || tags.length > 0 || typeFilter
             ? 'Aucune question ne correspond à ces critères.'
-            : "Aucune question pour le moment. Crée la première."}
+            : "Aucune question pour le moment. Créez la première."}
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

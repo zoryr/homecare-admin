@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
   if (!res.ok) {
     if (res.status === 401) {
       return NextResponse.json(
-        { error: 'Unsplash : clé API invalide ou expirée. Vérifie UNSPLASH_ACCESS_KEY.' },
+        { error: 'Unsplash : clé API invalide ou expirée. Vérifiez UNSPLASH_ACCESS_KEY.' },
         { status: 502 },
       );
     }

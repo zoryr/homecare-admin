@@ -9,7 +9,7 @@ const LABELS: Record<Role, { title: string; submitCta: string; warning: string }
     title: 'Inviter un salarié',
     submitCta: "Envoyer l'invitation",
     warning:
-      "Un email de bienvenue va être envoyé. Le lien dans l'email ouvre l'app mobile — pense à demander au salarié d'avoir installé l'app au préalable.",
+      "Un email de bienvenue va être envoyé. Le lien dans l'email ouvre l'app mobile — pensez à demander au salarié d'avoir installé l'app au préalable.",
   },
   admin: {
     title: 'Inviter un administrateur',

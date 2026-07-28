@@ -57,7 +57,7 @@ export default function TagInput({ value, onChange }: Props) {
               removeTag(value[value.length - 1]);
             }
           }}
-          placeholder={value.length === 0 ? 'Ajoute un tag…' : ''}
+          placeholder={value.length === 0 ? 'Ajoutez un tag…' : ''}
           className="min-w-[120px] flex-1 bg-transparent px-1 text-sm focus:outline-none"
         />
       </div>

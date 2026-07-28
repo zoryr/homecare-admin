@@ -442,7 +442,7 @@ export default function SurveyBuilder({ initialSurvey, initialItems, initialQues
 
             {isPublished && (
               <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
-                Sondage en ligne. Tu peux encore ajouter / réordonner des items, mais éviter de supprimer ceux qui ont déjà reçu des réponses.
+                Sondage en ligne. Vous pouvez encore ajouter / réordonner des items, mais éviter de supprimer ceux qui ont déjà reçu des réponses.
               </p>
             )}
 
@@ -514,7 +514,7 @@ export default function SurveyBuilder({ initialSurvey, initialItems, initialQues
           {items.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-ink-300 bg-white p-12 text-center text-ink-500">
               <Minus className="mx-auto mb-2 h-6 w-6 text-ink-400" />
-              Le sondage est vide. Ajoute une première question pour commencer.
+              Le sondage est vide. Ajoutez une première question pour commencer.
             </div>
           ) : (
             <DndContext

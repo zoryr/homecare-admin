@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
   if (!res.ok) {
     if (res.status === 401) {
       return NextResponse.json(
-        { error: 'Pexels : clé API invalide ou expirée. Vérifie PEXELS_API_KEY.' },
+        { error: 'Pexels : clé API invalide ou expirée. Vérifiez PEXELS_API_KEY.' },
         { status: 502 },
       );
     }

@@ -63,11 +63,9 @@ export default function ActuForm({ initial }: Props) {
   }
 
   function validate(): string | null {
+    // Seul le titre est obligatoire. Description, corps et image sont optionnels
+    // (une actu peut n'être qu'un titre + une image de couverture, par exemple).
     if (!titre.trim()) return 'Le titre est obligatoire.';
-    if (!description.trim()) return 'La description est obligatoire.';
-    if (statut === 'publie' && !corps.replace(/<[^>]+>/g, '').trim()) {
-      return 'Le contenu ne peut pas être vide pour publier.';
-    }
     return null;
   }
 
@@ -75,6 +73,14 @@ export default function ActuForm({ initial }: Props) {
     const err = validate();
     if (err) {
       notify('error', err);
+      return;
+    }
+
+    // Cas extrême : uniquement le titre est renseigné (ni description, ni corps,
+    // ni image). On ne bloque pas, on prévient simplement.
+    const corpsVide = !corps.replace(/<[^>]+>/g, '').trim();
+    const presqueVide = !description.trim() && corpsVide && !imageCouvertureUrl;
+    if (presqueVide && !window.confirm("Cette actualité n'a que le titre. Continuer ?")) {
       return;
     }
 
@@ -177,11 +183,9 @@ export default function ActuForm({ initial }: Props) {
         </Field>
         <Field
           label="Description"
-          required
-          help="Affichée dans la liste des actualités (2-3 lignes)."
+          help="Optionnelle. Affichée dans la liste des actualités (2-3 lignes)."
         >
           <textarea
-            required
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -208,7 +212,7 @@ export default function ActuForm({ initial }: Props) {
       {/* Section 3 : contenu */}
       <Section
         title="Contenu"
-        help={isNew ? 'Enregistre d\'abord en brouillon pour pouvoir uploader des images dans le contenu.' : undefined}
+        help={isNew ? 'Enregistrez d\'abord en brouillon pour pouvoir uploader des images dans le contenu.' : undefined}
       >
         {canEditContent ? (
           <RichTextEditor
@@ -218,7 +222,7 @@ export default function ActuForm({ initial }: Props) {
           />
         ) : (
           <div className="rounded-xl border border-dashed border-ink-300 bg-ink-50 p-6 text-center text-sm text-ink-500">
-            Saisis un titre + description, clique « Enregistrer » : tu pourras alors rédiger le contenu.
+            Enregistrez d’abord (le titre suffit), vous pourrez alors rédiger le contenu.
           </div>
         )}
       </Section>
