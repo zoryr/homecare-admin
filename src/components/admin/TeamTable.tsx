@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 
 import EditMemberModal from './EditMemberModal';
-import InviteModal from './InviteModal';
 import { useToast } from '@/components/Toast';
 
 export type Role = 'salarie' | 'admin';
@@ -43,7 +42,6 @@ type Props = {
 export default function TeamTable({ role, members, currentUserId }: Props) {
   const router = useRouter();
   const { notify } = useToast();
-  const [inviteOpen, setInviteOpen] = useState(false);
   const [editing, setEditing] = useState<Member | null>(null);
   const [, startTransition] = useTransition();
   const labels = LABELS[role];
@@ -62,12 +60,9 @@ export default function TeamTable({ role, members, currentUserId }: Props) {
           <h1 className="mt-1 font-display text-4xl font-medium text-ink-900">{labels.title}</h1>
           <p className="mt-2 text-sm text-ink-500">
             {members.length} {role === 'admin' ? 'administrateur' : 'salarié'}
-            {members.length > 1 ? 's' : ''} · gestion des invitations et accès.
+            {members.length > 1 ? 's' : ''} · gestion des accès.
           </p>
         </div>
-        <button onClick={() => setInviteOpen(true)} className="btn-primary">
-          {labels.inviteCta}
-        </button>
       </header>
 
       <div className="overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-soft">
@@ -130,19 +125,6 @@ export default function TeamTable({ role, members, currentUserId }: Props) {
           </tbody>
         </table>
       </div>
-
-      {inviteOpen && (
-        <InviteModal
-          role={role}
-          onClose={() => setInviteOpen(false)}
-          onSuccess={() => {
-            setInviteOpen(false);
-            notify('success', 'Invitation envoyée. Un email a été adressé au destinataire.');
-            refresh();
-          }}
-          onError={(msg) => notify('error', msg)}
-        />
-      )}
 
       {editing && (
         <EditMemberModal

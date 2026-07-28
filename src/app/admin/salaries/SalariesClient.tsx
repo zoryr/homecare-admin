@@ -87,9 +87,15 @@ export default function SalariesClient({ salaries }: { salaries: Salarie[] }) {
             {salaries.length} compte{salaries.length > 1 ? 's' : ''} · matricule + mot de passe.
           </p>
         </div>
-        <button onClick={() => setNewOpen(true)} className="btn-primary">
-          + Nouveau salarié
-        </button>
+        <div className="flex flex-col items-end gap-1.5">
+          <button onClick={() => setNewOpen(true)} className="btn-primary">
+            + Nouveau salarié
+          </button>
+          <p className="max-w-[18rem] text-right text-xs text-ink-400">
+            Pour créer un nouvel administrateur, contactez le développeur technique ou passez par le
+            dashboard Supabase.
+          </p>
+        </div>
       </header>
 
       <div className="mb-4 flex flex-wrap items-center gap-3">

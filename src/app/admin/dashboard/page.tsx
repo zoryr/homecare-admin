@@ -50,8 +50,8 @@ export default async function DashboardPage() {
         />
         <ActionCard
           eyebrow="Équipe"
-          title="Inviter un salarié"
-          description="Envoyez un email de bienvenue. Le salarié reçoit un lien pour ouvrir l'app mobile."
+          title="Créer un salarié"
+          description="Générez un matricule + mot de passe et communiquez-les au salarié à l'oral. Aucun email envoyé."
           cta="Voir les salariés"
           href="/admin/salaries"
         />

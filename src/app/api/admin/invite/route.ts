@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
 
-// Phase 2.2 — Les invitations par email sont supprimées. Les comptes salariés
-// sont désormais créés depuis /admin/salaries (matricule + mot de passe), sans
-// aucun email envoyé. Cet endpoint est conservé en 410 Gone pour signaler la
-// dépréciation à d'éventuels appelants restants.
+// Phase 2.2 — Les invitations par email sont désactivées. Deux systèmes d'auth
+// en parallèle : les salariés se créent via /admin/salaries (matricule + mot de
+// passe), les admins via le dashboard Supabase (OTP email inchangé).
 export async function POST() {
   return NextResponse.json(
     {
       error:
-        "L'invitation par email n'existe plus. Créez le compte depuis « Salariés » (matricule + mot de passe).",
+        'Cette API est désactivée. Les salariés se créent via /admin/salaries. Les admins se créent via le dashboard Supabase.',
     },
     { status: 410 },
   );
