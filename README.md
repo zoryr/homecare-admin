@@ -65,7 +65,9 @@ NEXT_PUBLIC_SUPABASE_URL=https://sgpfvzlyhdzfgdceisnx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 
 # URL canonique (utilisée pour les emails, deeplinks, défaults)
-NEXT_PUBLIC_SITE_URL=https://homecare-admin.vercel.app
+# ⚠️ Domaine AVEC -gray. `homecare-admin.vercel.app` (sans -gray) appartient à
+#    un autre compte Vercel. À définir aussi côté Vercel (Settings → Env Vars).
+NEXT_PUBLIC_SITE_URL=https://homecare-admin-gray.vercel.app
 
 # Server-only (fuite = compromission totale)
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
@@ -109,7 +111,7 @@ Le header `Authorization: Bearer ${CRON_SECRET}` est ajouté automatiquement par
 
 ## Liens
 
-- Production : https://homecare-admin.vercel.app
+- Production : https://homecare-admin-gray.vercel.app (⚠️ le domaine sans `-gray` appartient à un autre compte Vercel)
 - Repo app mobile : https://github.com/zoryr/homecare-app
 - Dashboard Supabase : https://supabase.com/dashboard/project/sgpfvzlyhdzfgdceisnx
 

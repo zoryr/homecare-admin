@@ -1,5 +1,9 @@
 # Contexte projet pour Claude Code
 
+> **URL admin réelle : https://homecare-admin-gray.vercel.app**
+> (le domaine sans `-gray`, `homecare-admin.vercel.app`, appartient à un autre
+> utilisateur Vercel — ne pas l'utiliser.)
+
 ⚠️ Si tu es Claude Code et que tu lis ce fichier : tu travailles sur le
 projet Home & Care. Lis ce fichier en entier avant de commencer une tâche.
 
@@ -10,7 +14,7 @@ agence d'aide à domicile (Pays de Grasse, 06).
 Directrice / admin principal : Élodie Jaussaud (elodie.jaussaud@homeandcare.fr)
 Admin technique : Raphael (raphzory@yahoo.fr)
 
-URL admin : https://homecare-admin.vercel.app
+URL admin : https://homecare-admin-gray.vercel.app
 Reference Supabase : sgpfvzlyhdzfgdceisnx
 MCP configuré : supabase-homecare (lit/écrit la DB)
 
