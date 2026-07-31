@@ -39,8 +39,10 @@ export const documentsListe: HelpPage = {
           <ul>
             <li>
               <strong>Livret / Règlement (flipbook)</strong>&nbsp;: collez l’<strong>URL Heyzine</strong>
-              (ex. <em>https://heyzine.com/flip-book/xxxxx</em>), cochez «&nbsp;Publié&nbsp;» puis
-              «&nbsp;Enregistrer&nbsp;». «&nbsp;Prévisualiser&nbsp;» ouvre le flipbook dans un onglet.
+              (format attendu <em>https://heyzine.com/flip-book/xxxxx.html</em>), cochez
+              «&nbsp;Publié&nbsp;» puis «&nbsp;Enregistrer&nbsp;». «&nbsp;Prévisualiser&nbsp;» l’ouvre
+              dans un onglet. Côté salarié, le flipbook s’ouvre désormais <strong>directement dans
+              l’app</strong> (plus dans le navigateur).
             </li>
             <li>
               <strong>Ajouter une note / une info personnel</strong>&nbsp;: bouton «&nbsp;+ Ajouter&nbsp;»
