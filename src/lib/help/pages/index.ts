@@ -20,6 +20,7 @@ const LOADERS: Record<string, Loader> = {
   sondages_resultats: () => import('./sondages-resultats').then((m) => m.sondagesResultats),
   documents_liste: () => import('./documents-liste').then((m) => m.documentsListe),
   documents_edition: () => import('./documents-edition').then((m) => m.documentsEdition),
+  horaires: () => import('./horaires').then((m) => m.horaires),
   apropos: () => import('./apropos').then((m) => m.apropos),
   salaries: () => import('./salaries').then((m) => m.salaries),
 };
