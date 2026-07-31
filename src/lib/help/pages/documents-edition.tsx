@@ -27,20 +27,35 @@ export const documentsEdition: HelpPage = {
           <h4>1. Le fichier</h4>
           <p>
             Glissez-déposez votre fichier sur la zone dédiée, ou cliquez pour ouvrir le sélecteur.
-            Formats acceptés&nbsp;: <strong>PDF, JPG, PNG, WEBP</strong>. Max{' '}
-            <strong>10 Mo</strong>. Une fois uploadé, vous pouvez le télécharger pour vérifier, le
-            remplacer ou le supprimer.
+            Formats acceptés&nbsp;: <strong>PDF, JPG, PNG, WEBP</strong> (max <strong>10 Mo</strong>)
+            et <strong>MP4, MOV</strong> pour les vidéos verticales (max <strong>50 Mo</strong>). Une
+            vidéo est détectée automatiquement&nbsp;; son lecteur intégré dans l’app arrive en
+            Phase 2.7 (pour l’instant elle s’ouvre en externe).
           </p>
 
-          <h4>2. Les informations</h4>
+          <h4>2. Le rangement (rubrique)</h4>
           <p>
-            <strong>Titre</strong> (obligatoire), <strong>Description</strong> (résumé court qui
-            apparaît dans la liste), <strong>Catégorie</strong> (à choisir parmi celles que vous
-            avez créées — bouton «&nbsp;Gérer&nbsp;» pour en créer une nouvelle sans quitter la
-            page).
+            Le document appartient à la <strong>rubrique</strong> depuis laquelle vous l’avez créé
+            (Infos professionnelles / Avantages / Conseils)&nbsp;:
+          </p>
+          <ul>
+            <li>
+              <strong>Infos professionnelles</strong>&nbsp;: choisissez la <strong>sous-rubrique</strong>
+              (Notes de service ou Informations pour le personnel).
+            </li>
+            <li>
+              <strong>Avantages / Conseils</strong>&nbsp;: pas de sous-rubrique, mais une{' '}
+              <strong>catégorie</strong> libre (bouton «&nbsp;Gérer&nbsp;» pour en créer une).
+            </li>
+          </ul>
+
+          <h4>3. Les informations</h4>
+          <p>
+            <strong>Titre</strong> (obligatoire) et <strong>Description</strong> (résumé court qui
+            apparaît dans la liste).
           </p>
 
-          <h4>3. L’image de couverture (optionnelle)</h4>
+          <h4>4. L’image de couverture (optionnelle)</h4>
           <p>
             Si vous ne mettez rien&nbsp;: l’app affichera un placeholder selon le type (icône PDF
             rouge / icône image bleue). Sinon, choisissez via Unsplash, Pexels ou en téléversant
@@ -48,7 +63,7 @@ export const documentsEdition: HelpPage = {
             «&nbsp;Utiliser l’image du document comme couverture&nbsp;» est disponible.
           </p>
 
-          <h4>4. La publication</h4>
+          <h4>5. La publication</h4>
           <ul>
             <li>
               <strong>Épingler en haut</strong>&nbsp;: le document apparaît en avant dans la liste

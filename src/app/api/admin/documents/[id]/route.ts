@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getCurrentProfile } from '@/lib/supabase/get-profile';
-import { ACCEPTED_MIME_TYPES, MAX_FILE_SIZE } from '@/lib/documents/constants';
+import { ACCEPTED_MIME_TYPES, getMaxFileSize } from '@/lib/documents/constants';
 import type { DocumentRubrique, DocumentSousRubrique } from '@/lib/documents/types';
 import type { ImageSource } from '@/lib/images/types';
 
@@ -47,6 +47,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     sous_rubrique?: DocumentSousRubrique | null;
     flipbook_url?: string | null;
     ordre?: number;
+    est_video_verticale?: boolean;
   };
   const update: Update = {};
 
@@ -70,13 +71,18 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: 'Type de fichier non supporté' }, { status: 400 });
     }
     const taille = Number(body.fichier_taille ?? 0);
-    if (!Number.isFinite(taille) || taille <= 0 || taille > MAX_FILE_SIZE) {
-      return NextResponse.json({ error: 'Taille de fichier invalide (max 10 MB)' }, { status: 400 });
+    const maxSize = getMaxFileSize(body.mime_type);
+    if (!Number.isFinite(taille) || taille <= 0 || taille > maxSize) {
+      return NextResponse.json(
+        { error: `Taille de fichier invalide (max ${Math.round(maxSize / 1024 / 1024)} MB)` },
+        { status: 400 },
+      );
     }
     update.fichier_url = body.fichier_url;
     update.fichier_nom = body.fichier_nom;
     update.fichier_taille = taille;
     update.mime_type = body.mime_type;
+    update.est_video_verticale = body.mime_type.startsWith('video/');
   }
 
   if (Object.keys(update).length === 0) {

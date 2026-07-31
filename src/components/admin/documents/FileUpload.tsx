@@ -1,16 +1,17 @@
 'use client';
 
-import { Download, FileText, Image as ImageIcon, Loader2, Trash2, Upload } from 'lucide-react';
+import { Download, FileText, Film, Loader2, Trash2, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
 
 import { useToast } from '@/components/Toast';
 import {
   ACCEPTED_EXTENSIONS,
-  MAX_FILE_SIZE,
+  MAX_FILE_SIZE_VIDEO,
   formatFileSize,
+  getMaxFileSize,
   isAcceptedMime,
   isImage,
-  isPdf,
+  isVideo,
 } from '@/lib/documents/constants';
 import { createClient } from '@/lib/supabase/client';
 
@@ -41,8 +42,9 @@ export default function FileUpload({ value, onChange, slugTitre, folderSlug }: P
       notify('error', `Type non supporté. Accepté : ${ACCEPTED_EXTENSIONS.join(', ').toUpperCase()}`);
       return;
     }
-    if (file.size > MAX_FILE_SIZE) {
-      notify('error', `Fichier trop volumineux (max ${formatFileSize(MAX_FILE_SIZE)})`);
+    const maxSize = getMaxFileSize(file.type);
+    if (file.size > maxSize) {
+      notify('error', `Fichier trop volumineux (max ${formatFileSize(maxSize)})`);
       return;
     }
 
@@ -112,7 +114,7 @@ export default function FileUpload({ value, onChange, slugTitre, folderSlug }: P
         <input
           ref={inputRef}
           type="file"
-          accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"
+          accept=".pdf,.jpg,.jpeg,.png,.webp,.mp4,.mov,application/pdf,image/jpeg,image/png,image/webp,video/mp4,video/quicktime"
           className="hidden"
           onChange={onPick}
           disabled={uploading}
@@ -127,7 +129,7 @@ export default function FileUpload({ value, onChange, slugTitre, folderSlug }: P
             <Upload className="mb-3 h-8 w-8 text-ink-400" />
             <p className="font-medium text-ink-700">Glisser un fichier ici ou cliquer</p>
             <p className="mt-1 text-xs text-ink-500">
-              PDF, JPG, PNG, WEBP — max {formatFileSize(MAX_FILE_SIZE)}
+              PDF, JPG, PNG, WEBP, MP4, MOV — max 10 MB (50 MB vidéo)
             </p>
           </>
         )}
@@ -136,7 +138,7 @@ export default function FileUpload({ value, onChange, slugTitre, folderSlug }: P
   }
 
   // Aperçu
-  const Icon = isPdf(value.mime_type) ? FileText : ImageIcon;
+  const vid = isVideo(value.mime_type);
   return (
     <div className="rounded-2xl border border-ink-200 bg-white p-4">
       <div className="flex flex-col gap-4">
@@ -147,11 +149,21 @@ export default function FileUpload({ value, onChange, slugTitre, folderSlug }: P
             alt={value.nom}
             className="max-h-64 w-full rounded-lg object-contain"
           />
+        ) : vid ? (
+          // eslint-disable-next-line jsx-a11y/media-has-caption
+          <video src={value.url} controls className="max-h-80 w-full rounded-lg bg-black object-contain" />
         ) : (
           <div className="flex aspect-[3/1] w-full items-center justify-center rounded-lg bg-gradient-to-br from-rose-50 to-rose-100">
-            <Icon className="h-16 w-16 text-rose-400" strokeWidth={1.5} />
+            <FileText className="h-16 w-16 text-rose-400" strokeWidth={1.5} />
           </div>
         )}
+        {vid ? (
+          <p className="flex items-center gap-2 rounded-lg border border-purple-200 bg-purple-50 px-3 py-2 text-xs text-purple-800">
+            <Film className="h-4 w-4 shrink-0" />
+            Cette vidéo sera affichée en format vertical dans l&apos;app (lecteur intégré disponible
+            en Phase 2.7). Taille max {formatFileSize(MAX_FILE_SIZE_VIDEO)}.
+          </p>
+        ) : null}
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0 flex-1">
@@ -195,7 +207,7 @@ export default function FileUpload({ value, onChange, slugTitre, folderSlug }: P
         <input
           ref={inputRef}
           type="file"
-          accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"
+          accept=".pdf,.jpg,.jpeg,.png,.webp,.mp4,.mov,application/pdf,image/jpeg,image/png,image/webp,video/mp4,video/quicktime"
           className="hidden"
           onChange={onPick}
           disabled={uploading}

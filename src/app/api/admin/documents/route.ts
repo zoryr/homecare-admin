@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getCurrentProfile } from '@/lib/supabase/get-profile';
-import { ACCEPTED_MIME_TYPES, MAX_FILE_SIZE } from '@/lib/documents/constants';
+import { ACCEPTED_MIME_TYPES, getMaxFileSize } from '@/lib/documents/constants';
 import type { DocumentRubrique, DocumentSousRubrique } from '@/lib/documents/types';
 import type { ImageSource } from '@/lib/images/types';
 
@@ -39,8 +39,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Type de fichier non supporté' }, { status: 400 });
   }
   const taille = Number(body.fichier_taille ?? 0);
-  if (!Number.isFinite(taille) || taille <= 0 || taille > MAX_FILE_SIZE) {
-    return NextResponse.json({ error: 'Taille de fichier invalide (max 10 MB)' }, { status: 400 });
+  const maxSize = getMaxFileSize(body.mime_type);
+  if (!Number.isFinite(taille) || taille <= 0 || taille > maxSize) {
+    return NextResponse.json(
+      { error: `Taille de fichier invalide (max ${Math.round(maxSize / 1024 / 1024)} MB)` },
+      { status: 400 },
+    );
   }
 
   const admin = createAdminClient();
@@ -60,6 +64,7 @@ export async function POST(request: NextRequest) {
       rubrique: body.rubrique ?? 'infos_pro',
       sous_rubrique: body.sous_rubrique ?? null,
       ordre: body.ordre ?? 0,
+      est_video_verticale: body.mime_type.startsWith('video/'),
       statut: 'brouillon',
       cree_par: caller.id,
     })

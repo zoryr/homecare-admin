@@ -15,14 +15,15 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { ExternalLink, FileText, GripVertical, Image as ImageIcon, Plus } from 'lucide-react';
+import { BookText, ExternalLink, FileText, Film, GripVertical, Image as ImageIcon, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState, useTransition } from 'react';
 
 import { useToast } from '@/components/Toast';
-import { formatFileSize, isPdf } from '@/lib/documents/constants';
+import { couleurStyle, formatFileSize, isPdf } from '@/lib/documents/constants';
 import type {
+  DocumentCategorie,
   DocumentSousRubrique,
   DocumentStatut,
   DocumentWithCategorie,
@@ -81,8 +82,12 @@ export default function DocumentsListClient({
         <TabButton active={tab === 'infos_pro'} onClick={() => setTab('infos_pro')}>
           Infos professionnelles
         </TabButton>
-        <TabButton disabled>Avantages Home &amp; Care</TabButton>
-        <TabButton disabled>Conseils &amp; astuces</TabButton>
+        <TabButton active={tab === 'avantages'} onClick={() => setTab('avantages')}>
+          Avantages Home &amp; Care
+        </TabButton>
+        <TabButton active={tab === 'conseils'} onClick={() => setTab('conseils')}>
+          Conseils &amp; astuces
+        </TabButton>
       </div>
 
       {tab === 'infos_pro' ? (
@@ -109,7 +114,124 @@ export default function DocumentsListClient({
           />
         </div>
       ) : null}
+
+      {tab === 'avantages' ? (
+        <RubriqueList rubrique="avantages" heading="🎁 Avantages Home & Care" documents={documents} />
+      ) : null}
+      {tab === 'conseils' ? (
+        <RubriqueList rubrique="conseils" heading="💡 Conseils & astuces" documents={documents} />
+      ) : null}
     </div>
+  );
+}
+
+/* ------------------------- Liste par rubrique (Avantages / Conseils) ------------------------- */
+
+function RubriqueList({
+  rubrique,
+  heading,
+  documents,
+}: {
+  rubrique: 'avantages' | 'conseils';
+  heading: string;
+  documents: DocumentWithCategorie[];
+}) {
+  const { notify } = useToast();
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+
+  const all = useMemo(
+    () => documents.filter((d) => d.rubrique === rubrique).sort((a, b) => a.ordre - b.ordre),
+    [documents, rubrique],
+  );
+  const [items, setItems] = useState(all);
+  const [catFilter, setCatFilter] = useState<string>('all');
+
+  const usedCats = useMemo(() => {
+    const map = new Map<string, DocumentCategorie>();
+    all.forEach((d) => {
+      if (d.categorie) map.set(d.categorie.id, d.categorie);
+    });
+    return Array.from(map.values());
+  }, [all]);
+
+  const canReorder = catFilter === 'all';
+  const visible = canReorder ? items : items.filter((d) => d.categorie_id === catFilter);
+
+  async function onDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = items.findIndex((d) => d.id === active.id);
+    const newIndex = items.findIndex((d) => d.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    const next = arrayMove(items, oldIndex, newIndex);
+    setItems(next);
+    const res = await fetch('/api/admin/documents/reorder', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ ids: next.map((d) => d.id) }),
+    });
+    if (!res.ok) {
+      notify('error', 'Réordonnancement échoué.');
+      setItems(all);
+    }
+  }
+
+  return (
+    <section className="rounded-2xl border border-ink-200 bg-white p-6">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-display text-xl font-medium text-ink-900">{heading}</h2>
+        <Link
+          href={`/admin/documents/new?rubrique=${rubrique}`}
+          className="btn-primary inline-flex items-center gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          Ajouter
+        </Link>
+      </div>
+
+      {usedCats.length > 0 ? (
+        <div className="mb-4 flex items-center gap-2">
+          <label className="text-sm text-ink-500">Catégorie&nbsp;:</label>
+          <select
+            value={catFilter}
+            onChange={(e) => setCatFilter(e.target.value)}
+            className="rounded-lg border border-ink-200 bg-white px-3 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+          >
+            <option value="all">Toutes</option>
+            {usedCats.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nom}
+              </option>
+            ))}
+          </select>
+          {!canReorder ? (
+            <span className="text-xs text-ink-400">(réordonnancement possible sur « Toutes »)</span>
+          ) : null}
+        </div>
+      ) : null}
+
+      {visible.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-ink-300 bg-ink-50 p-6 text-center text-sm text-ink-500">
+          Aucun document pour le moment.
+        </p>
+      ) : canReorder ? (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+          <SortableContext items={items.map((d) => d.id)} strategy={verticalListSortingStrategy}>
+            <ul className="space-y-2">
+              {items.map((d) => (
+                <SortableDocRow key={d.id} doc={d} />
+              ))}
+            </ul>
+          </SortableContext>
+        </DndContext>
+      ) : (
+        <ul className="space-y-2">
+          {visible.map((d) => (
+            <StaticDocRow key={d.id} doc={d} />
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
@@ -315,6 +437,49 @@ function DocsSection({
   );
 }
 
+function docIcon(doc: DocumentWithCategorie): { node: React.ReactNode; cls: string } {
+  if (doc.flipbook_url) return { node: <BookText className="h-5 w-5" />, cls: 'bg-amber-50 text-amber-600' };
+  if (doc.est_video_verticale) return { node: <Film className="h-5 w-5" />, cls: 'bg-purple-50 text-purple-600' };
+  if (doc.mime_type && isPdf(doc.mime_type)) return { node: <FileText className="h-5 w-5" />, cls: 'bg-rose-50 text-rose-500' };
+  return { node: <ImageIcon className="h-5 w-5" />, cls: 'bg-blue-50 text-blue-500' };
+}
+
+function DocRowBody({ doc }: { doc: DocumentWithCategorie }) {
+  const icon = docIcon(doc);
+  const catStyle = doc.categorie ? couleurStyle(doc.categorie.couleur) : null;
+  return (
+    <>
+      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${icon.cls}`}>
+        {icon.node}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-medium text-ink-900">{doc.titre}</p>
+        <p className="truncate text-xs text-ink-400">
+          {doc.fichier_nom ?? (doc.flipbook_url ? 'Flipbook Heyzine' : '—')}
+          {doc.fichier_taille ? ` · ${formatFileSize(doc.fichier_taille)}` : ''}
+        </p>
+      </div>
+      {doc.categorie && catStyle ? (
+        <span
+          className="hidden rounded-full px-2 py-0.5 text-xs font-medium sm:inline"
+          style={{ backgroundColor: catStyle.bg, color: catStyle.text }}
+        >
+          {doc.categorie.nom}
+        </span>
+      ) : null}
+      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUT_BADGE[doc.statut]}`}>
+        {doc.statut === 'publie' ? 'Publié' : 'Brouillon'}
+      </span>
+      <Link
+        href={`/admin/documents/${doc.id}`}
+        className="rounded-md border border-ink-200 bg-white px-3 py-1 text-xs font-medium text-ink-700 hover:border-brand-300 hover:text-brand-700"
+      >
+        Modifier
+      </Link>
+    </>
+  );
+}
+
 function SortableDocRow({ doc }: { doc: DocumentWithCategorie }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: doc.id,
@@ -324,7 +489,6 @@ function SortableDocRow({ doc }: { doc: DocumentWithCategorie }) {
     transition,
     opacity: isDragging ? 0.6 : 1,
   };
-  const pdf = doc.mime_type ? isPdf(doc.mime_type) : false;
 
   return (
     <li
@@ -341,31 +505,16 @@ function SortableDocRow({ doc }: { doc: DocumentWithCategorie }) {
       >
         <GripVertical className="h-5 w-5" />
       </button>
+      <DocRowBody doc={doc} />
+    </li>
+  );
+}
 
-      <span
-        className={`flex h-10 w-10 items-center justify-center rounded-lg ${pdf ? 'bg-rose-50 text-rose-500' : 'bg-blue-50 text-blue-500'}`}
-      >
-        {pdf ? <FileText className="h-5 w-5" /> : <ImageIcon className="h-5 w-5" />}
-      </span>
-
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-medium text-ink-900">{doc.titre}</p>
-        <p className="truncate text-xs text-ink-400">
-          {doc.fichier_nom ?? '—'}
-          {doc.fichier_taille ? ` · ${formatFileSize(doc.fichier_taille)}` : ''}
-        </p>
-      </div>
-
-      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUT_BADGE[doc.statut]}`}>
-        {doc.statut === 'publie' ? 'Publié' : 'Brouillon'}
-      </span>
-
-      <Link
-        href={`/admin/documents/${doc.id}`}
-        className="rounded-md border border-ink-200 bg-white px-3 py-1 text-xs font-medium text-ink-700 hover:border-brand-300 hover:text-brand-700"
-      >
-        Modifier
-      </Link>
+function StaticDocRow({ doc }: { doc: DocumentWithCategorie }) {
+  return (
+    <li className="flex items-center gap-3 rounded-xl border border-ink-200 bg-white p-3">
+      <span className="w-5 shrink-0" aria-hidden />
+      <DocRowBody doc={doc} />
     </li>
   );
 }

@@ -47,6 +47,7 @@ export interface DocumentRow {
   sous_rubrique: DocumentSousRubrique | null;
   flipbook_url: string | null;
   ordre: number;
+  est_video_verticale: boolean;
   cree_par: string;
   cree_le: string;
   modifie_le: string;

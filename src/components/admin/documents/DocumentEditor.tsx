@@ -27,6 +27,7 @@ import {
 import type {
   DocumentCategorie,
   DocumentRow,
+  DocumentRubrique,
   DocumentSousRubrique,
   DocumentStatut,
 } from '@/lib/documents/types';
@@ -52,6 +53,13 @@ export default function DocumentEditor({ initial, categories: initialCats }: Pro
   const { notify } = useToast();
   const [, startTransition] = useTransition();
   const isNew = initial === null;
+
+  const rubriqueFromQuery = searchParams.get('rubrique');
+  const rubrique: DocumentRubrique =
+    initial?.rubrique ??
+    (rubriqueFromQuery === 'avantages' || rubriqueFromQuery === 'conseils'
+      ? rubriqueFromQuery
+      : 'infos_pro');
 
   const sousFromQuery = searchParams.get('sous');
   const [sousRubrique, setSousRubrique] = useState<DocumentSousRubrique>(
@@ -126,8 +134,8 @@ export default function DocumentEditor({ initial, categories: initialCats }: Pro
         image_couverture_url: coverUrl,
         image_source: coverSource,
         featured_jusqua: featuredJusqua,
-        rubrique: 'infos_pro',
-        sous_rubrique: sousRubrique,
+        rubrique,
+        sous_rubrique: rubrique === 'infos_pro' ? sousRubrique : null,
       }),
     });
     setSubmitting(false);
@@ -195,8 +203,8 @@ export default function DocumentEditor({ initial, categories: initialCats }: Pro
         image_couverture_url: coverUrl,
         image_source: coverSource,
         featured_jusqua: featuredJusqua,
-        rubrique: 'infos_pro',
-        sous_rubrique: sousRubrique,
+        rubrique,
+        sous_rubrique: rubrique === 'infos_pro' ? sousRubrique : null,
       }),
     });
   }
@@ -308,16 +316,18 @@ export default function DocumentEditor({ initial, categories: initialCats }: Pro
               className="block w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
             />
           </Field>
-          <Field label="Sous-rubrique" help="Où ranger ce document dans « Infos professionnelles ».">
-            <select
-              value={sousRubrique}
-              onChange={(e) => setSousRubrique(e.target.value as DocumentSousRubrique)}
-              className="block w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-            >
-              <option value="notes_service">Notes de service</option>
-              <option value="informations_personnel">Informations pour le personnel</option>
-            </select>
-          </Field>
+          {rubrique === 'infos_pro' ? (
+            <Field label="Sous-rubrique" help="Où ranger ce document dans « Infos professionnelles ».">
+              <select
+                value={sousRubrique}
+                onChange={(e) => setSousRubrique(e.target.value as DocumentSousRubrique)}
+                className="block w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+              >
+                <option value="notes_service">Notes de service</option>
+                <option value="informations_personnel">Informations pour le personnel</option>
+              </select>
+            </Field>
+          ) : null}
           <Field label="Catégorie">
             <div className="flex flex-wrap items-center gap-2">
               <select
