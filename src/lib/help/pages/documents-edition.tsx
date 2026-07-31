@@ -29,8 +29,9 @@ export const documentsEdition: HelpPage = {
             Glissez-déposez votre fichier sur la zone dédiée, ou cliquez pour ouvrir le sélecteur.
             Formats acceptés&nbsp;: <strong>PDF, JPG, PNG, WEBP</strong> (max <strong>10 Mo</strong>)
             et <strong>MP4, MOV</strong> pour les vidéos verticales (max <strong>50 Mo</strong>). Une
-            vidéo est détectée automatiquement&nbsp;; son lecteur intégré dans l’app arrive en
-            Phase 2.7 (pour l’instant elle s’ouvre en externe).
+            vidéo est détectée automatiquement et lue <strong>en plein écran, en boucle</strong>
+            dans l’app. Format conseillé&nbsp;: <strong>MP4 (H.264), vertical 9:16</strong> (comme un
+            smartphone tenu debout), durée <strong>15 à 90 secondes</strong>.
           </p>
 
           <h4>2. Le rangement (rubrique)</h4>
