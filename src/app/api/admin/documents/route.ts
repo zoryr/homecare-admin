@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getCurrentProfile } from '@/lib/supabase/get-profile';
 import { ACCEPTED_MIME_TYPES, MAX_FILE_SIZE } from '@/lib/documents/constants';
+import type { DocumentRubrique, DocumentSousRubrique } from '@/lib/documents/types';
 import type { ImageSource } from '@/lib/images/types';
 
 type Body = {
@@ -16,6 +17,9 @@ type Body = {
   image_couverture_url?: string | null;
   image_source?: ImageSource | null;
   featured_jusqua?: string | null;
+  rubrique?: DocumentRubrique;
+  sous_rubrique?: DocumentSousRubrique | null;
+  ordre?: number;
 };
 
 export async function POST(request: NextRequest) {
@@ -53,6 +57,9 @@ export async function POST(request: NextRequest) {
       image_couverture_url: body.image_couverture_url ?? null,
       image_source: body.image_source ?? null,
       featured_jusqua: body.featured_jusqua ?? null,
+      rubrique: body.rubrique ?? 'infos_pro',
+      sous_rubrique: body.sous_rubrique ?? null,
+      ordre: body.ordre ?? 0,
       statut: 'brouillon',
       cree_par: caller.id,
     })

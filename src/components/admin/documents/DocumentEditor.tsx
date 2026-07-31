@@ -12,7 +12,7 @@ import {
   Undo2,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useMemo, useState, useTransition } from 'react';
 
 import CategoriesModal from './CategoriesModal';
@@ -27,6 +27,7 @@ import {
 import type {
   DocumentCategorie,
   DocumentRow,
+  DocumentSousRubrique,
   DocumentStatut,
 } from '@/lib/documents/types';
 import type { ImageSource } from '@/lib/images/types';
@@ -47,9 +48,17 @@ const STATUT_LABEL: Record<DocumentStatut, string> = {
 
 export default function DocumentEditor({ initial, categories: initialCats }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { notify } = useToast();
   const [, startTransition] = useTransition();
   const isNew = initial === null;
+
+  const sousFromQuery = searchParams.get('sous');
+  const [sousRubrique, setSousRubrique] = useState<DocumentSousRubrique>(
+    initial?.sous_rubrique === 'informations_personnel' || sousFromQuery === 'informations_personnel'
+      ? 'informations_personnel'
+      : 'notes_service',
+  );
 
   const [categories, setCategories] = useState(initialCats);
   const [statut, setStatut] = useState<DocumentStatut>(initial?.statut ?? 'brouillon');
@@ -117,6 +126,8 @@ export default function DocumentEditor({ initial, categories: initialCats }: Pro
         image_couverture_url: coverUrl,
         image_source: coverSource,
         featured_jusqua: featuredJusqua,
+        rubrique: 'infos_pro',
+        sous_rubrique: sousRubrique,
       }),
     });
     setSubmitting(false);
@@ -184,6 +195,8 @@ export default function DocumentEditor({ initial, categories: initialCats }: Pro
         image_couverture_url: coverUrl,
         image_source: coverSource,
         featured_jusqua: featuredJusqua,
+        rubrique: 'infos_pro',
+        sous_rubrique: sousRubrique,
       }),
     });
   }
@@ -294,6 +307,16 @@ export default function DocumentEditor({ initial, categories: initialCats }: Pro
               rows={3}
               className="block w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
             />
+          </Field>
+          <Field label="Sous-rubrique" help="Où ranger ce document dans « Infos professionnelles ».">
+            <select
+              value={sousRubrique}
+              onChange={(e) => setSousRubrique(e.target.value as DocumentSousRubrique)}
+              className="block w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            >
+              <option value="notes_service">Notes de service</option>
+              <option value="informations_personnel">Informations pour le personnel</option>
+            </select>
           </Field>
           <Field label="Catégorie">
             <div className="flex flex-wrap items-center gap-2">

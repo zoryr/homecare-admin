@@ -13,14 +13,21 @@ export const documentsListe: HelpPage = {
       content: (
         <>
           <p>
-            Cette page rassemble tous les <strong>documents officiels</strong> mis à disposition
-            de vos salariés&nbsp;: règlement intérieur, notes de service, procédures, modes
-            opératoires…
+            Cette page est organisée en <strong>rubriques</strong> (onglets en haut). Seule «&nbsp;
+            <strong>Infos professionnelles</strong>&nbsp;» est active&nbsp;; «&nbsp;Avantages&nbsp;»
+            et «&nbsp;Conseils&nbsp;» arrivent bientôt.
           </p>
-          <p>
-            Chaque document est associé à une <strong>catégorie</strong> (que vous créez
-            librement) et apparaît dans l’app mobile classé par catégorie.
-          </p>
+          <p>La rubrique «&nbsp;Infos professionnelles&nbsp;» contient 4 sections&nbsp;:</p>
+          <ul>
+            <li>
+              <strong>Livret d’accueil</strong> et <strong>Règlement intérieur</strong>&nbsp;: un
+              <strong> flipbook</strong> (feuilletable) via une URL Heyzine.
+            </li>
+            <li>
+              <strong>Notes de service</strong> et <strong>Informations pour le personnel</strong>
+              &nbsp;: des <strong>documents</strong> classiques (PDF ou image).
+            </li>
+          </ul>
         </>
       ),
     },
@@ -31,20 +38,20 @@ export const documentsListe: HelpPage = {
         <>
           <ul>
             <li>
-              <strong>Créer un document</strong>&nbsp;: bouton «&nbsp;+ Nouveau document&nbsp;».
+              <strong>Livret / Règlement (flipbook)</strong>&nbsp;: collez l’<strong>URL Heyzine</strong>
+              (ex. <em>https://heyzine.com/flip-book/xxxxx</em>), cochez «&nbsp;Publié&nbsp;» puis
+              «&nbsp;Enregistrer&nbsp;». «&nbsp;Prévisualiser&nbsp;» ouvre le flipbook dans un onglet.
             </li>
             <li>
-              <strong>Gérer les catégories</strong>&nbsp;: bouton «&nbsp;Gérer les catégories&nbsp;»
-              en haut. Vous y créez, renommez, recolorez et réordonnez vos catégories par
-              glisser-déposer. Les couleurs aident vos salariés à reconnaître les types de
-              documents au premier coup d’œil.
+              <strong>Ajouter une note / une info personnel</strong>&nbsp;: bouton «&nbsp;+ Ajouter&nbsp;»
+              de la section. Le document est automatiquement rangé dans la bonne section.
             </li>
             <li>
-              <strong>Filtrer</strong>&nbsp;: par catégorie, par statut (brouillons / publiés), ou
-              par recherche dans le titre.
+              <strong>Réordonner</strong>&nbsp;: glissez-déposez les documents (poignée à gauche) —
+              l’ordre est repris dans l’app.
             </li>
             <li>
-              <strong>Modifier</strong>&nbsp;: clic sur la card du document.
+              <strong>Modifier / supprimer</strong>&nbsp;: bouton «&nbsp;Modifier&nbsp;» sur la ligne.
             </li>
           </ul>
         </>

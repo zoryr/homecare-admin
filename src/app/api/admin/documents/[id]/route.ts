@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getCurrentProfile } from '@/lib/supabase/get-profile';
 import { ACCEPTED_MIME_TYPES, MAX_FILE_SIZE } from '@/lib/documents/constants';
+import type { DocumentRubrique, DocumentSousRubrique } from '@/lib/documents/types';
 import type { ImageSource } from '@/lib/images/types';
 
 type Body = {
@@ -16,6 +17,10 @@ type Body = {
   image_couverture_url?: string | null;
   image_source?: ImageSource | null;
   featured_jusqua?: string | null;
+  rubrique?: DocumentRubrique;
+  sous_rubrique?: DocumentSousRubrique | null;
+  flipbook_url?: string | null;
+  ordre?: number;
 };
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
@@ -38,6 +43,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     image_couverture_url?: string | null;
     image_source?: ImageSource | null;
     featured_jusqua?: string | null;
+    rubrique?: DocumentRubrique;
+    sous_rubrique?: DocumentSousRubrique | null;
+    flipbook_url?: string | null;
+    ordre?: number;
   };
   const update: Update = {};
 
@@ -47,6 +56,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   if (body.image_couverture_url !== undefined) update.image_couverture_url = body.image_couverture_url;
   if (body.image_source !== undefined) update.image_source = body.image_source;
   if (body.featured_jusqua !== undefined) update.featured_jusqua = body.featured_jusqua;
+  if (body.rubrique !== undefined) update.rubrique = body.rubrique;
+  if (body.sous_rubrique !== undefined) update.sous_rubrique = body.sous_rubrique;
+  if (body.flipbook_url !== undefined) update.flipbook_url = body.flipbook_url;
+  if (typeof body.ordre === 'number') update.ordre = body.ordre;
 
   // Si on remplace le fichier
   if (body.fichier_url !== undefined) {

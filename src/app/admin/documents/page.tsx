@@ -32,5 +32,5 @@ export default async function DocumentsListPage() {
     categorie: d.categorie_id ? (catMap.get(d.categorie_id) ?? null) : null,
   }));
 
-  return <DocumentsListClient initialDocuments={documents} initialCategories={categories} />;
+  return <DocumentsListClient initialDocuments={documents} />;
 }
