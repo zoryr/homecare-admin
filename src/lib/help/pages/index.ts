@@ -21,6 +21,7 @@ const LOADERS: Record<string, Loader> = {
   documents_liste: () => import('./documents-liste').then((m) => m.documentsListe),
   documents_edition: () => import('./documents-edition').then((m) => m.documentsEdition),
   horaires: () => import('./horaires').then((m) => m.horaires),
+  parametres: () => import('./parametres').then((m) => m.parametres),
   apropos: () => import('./apropos').then((m) => m.apropos),
   salaries: () => import('./salaries').then((m) => m.salaries),
 };

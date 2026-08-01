@@ -12,6 +12,7 @@ const ITEMS = [
   { href: '/admin/horaires', label: 'Horaires' },
   { href: '/admin/apropos', label: 'À propos' },
   { href: '/admin/equipe', label: 'Équipe' },
+  { href: '/admin/parametres', label: 'Paramètres' },
 ];
 
 export default function AdminNav() {
