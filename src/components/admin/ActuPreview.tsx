@@ -47,6 +47,8 @@ const MOBILE_CSS = `
   }
   .body img { max-width: 100%; height: auto; border-radius: 8px; margin: 12px 0; display: block; }
   .body a { color: #2563eb; text-decoration: underline; }
+  .body a.internal-link { color: #3DB5C5; text-decoration: none; font-weight: 600; }
+  .body a.internal-link::after { content: ' →'; }
   .body hr { border: none; border-top: 1px solid #e5e7eb; margin: 24px 0; }
   .body .callout {
     border-left: 4px solid;

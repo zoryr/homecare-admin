@@ -26,6 +26,7 @@ import {
   Link as LinkIcon,
   List,
   ListOrdered,
+  Newspaper,
   Palette,
   Quote,
   Redo2,
@@ -35,6 +36,8 @@ import {
 import { useEffect, useRef, useState } from 'react';
 
 import { Callout, type CalloutVariant } from './CalloutExtension';
+import InternalLinkModal from './InternalLinkModal';
+import { InternalLink } from '@/lib/tiptap/extensions/InternalLink';
 
 type Props = {
   value: string;
@@ -56,6 +59,7 @@ const COLORS = [
 
 export default function RichTextEditor({ value, onChange, onUploadImage, placeholder }: Props) {
   const [colorOpen, setColorOpen] = useState(false);
+  const [linkActuOpen, setLinkActuOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const editor = useEditor({
@@ -69,6 +73,7 @@ export default function RichTextEditor({ value, onChange, onUploadImage, placeho
       Color,
       ImageExt.configure({ inline: false }),
       Callout,
+      InternalLink,
     ],
     content: value,
     immediatelyRender: false,
@@ -125,6 +130,7 @@ export default function RichTextEditor({ value, onChange, onUploadImage, placeho
         onCloseColor={() => setColorOpen(false)}
         onPickImage={() => fileInputRef.current?.click()}
         onSetLink={handleSetLink}
+        onLinkActu={() => setLinkActuOpen(true)}
       />
       <input
         ref={fileInputRef}
@@ -134,6 +140,7 @@ export default function RichTextEditor({ value, onChange, onUploadImage, placeho
         onChange={handlePickImage}
       />
       <EditorContent editor={editor} />
+      {linkActuOpen && <InternalLinkModal editor={editor} onClose={() => setLinkActuOpen(false)} />}
     </div>
   );
 }
@@ -145,9 +152,11 @@ type ToolbarProps = {
   onCloseColor: () => void;
   onPickImage: () => void;
   onSetLink: () => void;
+  onLinkActu: () => void;
 };
 
-function Toolbar({ editor, colorOpen, onToggleColor, onCloseColor, onPickImage, onSetLink }: ToolbarProps) {
+function Toolbar({ editor, colorOpen, onToggleColor, onCloseColor, onPickImage, onSetLink, onLinkActu }: ToolbarProps) {
+  const noSelection = editor.state.selection.empty && !editor.isActive('internalLink');
   return (
     <div className="flex flex-wrap items-center gap-1 border-b border-slate-200 bg-slate-50 p-2">
       <Group>
@@ -241,8 +250,22 @@ function Toolbar({ editor, colorOpen, onToggleColor, onCloseColor, onPickImage, 
             </div>
           )}
         </div>
-        <Btn onClick={onSetLink} active={editor.isActive('link')} title="Lien">
+        <Btn onClick={onSetLink} active={editor.isActive('link')} title="Lien externe">
           <LinkIcon className="h-4 w-4" />
+        </Btn>
+        <Btn
+          onClick={onLinkActu}
+          active={editor.isActive('internalLink')}
+          disabled={noSelection}
+          title={
+            noSelection
+              ? "Sélectionnez d'abord du texte"
+              : editor.isActive('internalLink')
+                ? 'Modifier le lien vers une actu'
+                : 'Lien vers une actu'
+          }
+        >
+          <Newspaper className="h-4 w-4" />
         </Btn>
         <Btn onClick={onPickImage} title="Image">
           <ImageIcon className="h-4 w-4" />

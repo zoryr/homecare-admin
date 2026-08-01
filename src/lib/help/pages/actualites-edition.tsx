@@ -66,7 +66,13 @@ export const actualitesEdition: HelpPage = {
             <li><strong>Listes</strong>&nbsp;: à puces ou numérotées.</li>
             <li><strong>Alignements</strong>&nbsp;: gauche / centre / droite.</li>
             <li><strong>Citation</strong>&nbsp;: paragraphe encadré en italique.</li>
-            <li><strong>Lien</strong>&nbsp;: insertion d’un lien (URL).</li>
+            <li><strong>Lien</strong>&nbsp;: insertion d’un lien externe (URL, ouvre le navigateur).</li>
+            <li>
+              <strong>Lien vers une actu</strong> (icône journal)&nbsp;: sélectionnez d’abord du
+              texte, puis choisissez une autre actualité dans la fenêtre de recherche. Ce lien reste{' '}
+              <strong>dans l’app</strong> — il ouvre l’actualité cible directement, sans passer par
+              le navigateur. Bouton grisé tant qu’aucun texte n’est sélectionné.
+            </li>
             <li><strong>Image inline</strong>&nbsp;: image à l’intérieur de l’article (différente
               de la couverture).</li>
             <li><strong>Palette de couleurs</strong>&nbsp;: pour mettre en évidence un mot.</li>
@@ -89,8 +95,10 @@ export const actualitesEdition: HelpPage = {
 
           <h4>5. Le statut et l’épingle</h4>
           <p>
-            Quand vous êtes prêt(e), passez le statut à <strong>Publié</strong>. Si l’option
-            «&nbsp;Notifier l’équipe&nbsp;» est cochée, une notification push part automatiquement.
+            Trois statuts&nbsp;: <strong>Brouillon</strong> (non diffusé), <strong>Programmé</strong>
+            {' '}(choisissez une date/heure ≥ 5 min&nbsp;; l’actu se publie automatiquement à ce
+            moment) et <strong>Publié</strong> (diffusé immédiatement). Si l’option
+            «&nbsp;Notifier l’équipe&nbsp;» est cochée, une notification push part à la publication.
             L’option <strong>Épingler en haut</strong> (avec date) garde l’actu en avant pendant
             quelques jours.
           </p>
