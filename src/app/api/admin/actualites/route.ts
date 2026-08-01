@@ -13,8 +13,20 @@ type Body = {
   image_source?: ImageSource | null;
   tags?: string[];
   statut?: ActuStatut;
+  publier_le?: string | null;
   featured_jusqua?: string | null;
 };
+
+/** Valide une date de programmation : au moins 5 min dans le futur. Renvoie l'ISO ou une erreur. */
+function validerProgrammation(publierLe: string | null | undefined): { iso: string } | { error: string } {
+  if (!publierLe) return { error: 'Date de programmation requise.' };
+  const when = new Date(publierLe);
+  if (Number.isNaN(when.getTime())) return { error: 'Date de programmation invalide.' };
+  if (when.getTime() < Date.now() + 5 * 60 * 1000) {
+    return { error: 'La programmation doit être au moins 5 minutes dans le futur.' };
+  }
+  return { iso: when.toISOString() };
+}
 
 export async function POST(request: NextRequest) {
   const caller = await getCurrentProfile();
@@ -27,7 +39,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Titre requis' }, { status: 400 });
   }
 
-  const statut: ActuStatut = body.statut === 'publie' ? 'publie' : 'brouillon';
+  const requested = body.statut;
+  let statut: ActuStatut = 'brouillon';
+  let publieLe: string | null = null;
+  let publierLe: string | null = null;
+
+  if (requested === 'publie') {
+    statut = 'publie';
+    publieLe = new Date().toISOString();
+  } else if (requested === 'programme') {
+    const v = validerProgrammation(body.publier_le);
+    if ('error' in v) return NextResponse.json({ error: v.error }, { status: 400 });
+    statut = 'programme';
+    publierLe = v.iso;
+  }
+
   const supabase = createClient();
 
   const { data, error } = await supabase
@@ -40,7 +66,8 @@ export async function POST(request: NextRequest) {
       image_source: body.image_source ?? null,
       tags: body.tags ?? [],
       statut,
-      publie_le: statut === 'publie' ? new Date().toISOString() : null,
+      publie_le: publieLe,
+      publier_le: publierLe,
       featured_jusqua: body.featured_jusqua ?? null,
       cree_par: caller.id,
     })

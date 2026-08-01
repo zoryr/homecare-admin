@@ -25,6 +25,18 @@ function plus7DaysISO(): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** ISO (UTC) → valeur pour <input type="datetime-local"> (heure locale). */
+function isoToLocalInput(iso: string): string {
+  const d = new Date(iso);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
+/** Minimum autorisé pour la programmation : maintenant + 5 min (format datetime-local). */
+function minProgInput(): string {
+  const d = new Date(Date.now() + 5 * 60000);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
 export default function ActuForm({ initial }: Props) {
   const router = useRouter();
   const { notify } = useToast();
@@ -45,6 +57,9 @@ export default function ActuForm({ initial }: Props) {
   const [featuredEnabled, setFeaturedEnabled] = useState<boolean>(initial?.featured_jusqua !== null && initial?.featured_jusqua !== undefined);
   const [featuredJusqua, setFeaturedJusqua] = useState<string>(
     initial?.featured_jusqua ?? plus7DaysISO(),
+  );
+  const [publierLe, setPublierLe] = useState<string>(
+    initial?.publier_le ? isoToLocalInput(initial.publier_le) : '',
   );
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -84,6 +99,14 @@ export default function ActuForm({ initial }: Props) {
       return;
     }
 
+    // Programmation : date obligatoire ≥ maintenant + 5 min.
+    if (!isNew && statut === 'programme') {
+      if (!publierLe || new Date(publierLe).getTime() < Date.now() + 5 * 60000) {
+        notify('error', 'Choisissez une date de programmation au moins 5 minutes dans le futur.');
+        return;
+      }
+    }
+
     setSubmitting(true);
 
     const payload = {
@@ -94,8 +117,9 @@ export default function ActuForm({ initial }: Props) {
       image_source: imageSource,
       tags,
       // Au 1er save d'une nouvelle actu, on force brouillon (le passage à "publié"
-      // se fait après, depuis l'écran d'édition).
+      // ou "programmé" se fait après, depuis l'écran d'édition).
       statut: isNew ? ('brouillon' as ActuStatut) : statut,
+      publier_le: !isNew && statut === 'programme' && publierLe ? new Date(publierLe).toISOString() : null,
       featured_jusqua: featuredEnabled ? featuredJusqua : null,
     };
 
@@ -162,10 +186,14 @@ export default function ActuForm({ initial }: Props) {
           {!isNew && (
             <span
               className={`rounded-full px-3 py-1 text-xs font-medium ${
-                statut === 'publie' ? 'bg-brand-50 text-brand-700' : 'bg-ink-100 text-ink-700'
+                statut === 'publie'
+                  ? 'bg-brand-50 text-brand-700'
+                  : statut === 'programme'
+                    ? 'bg-violet-100 text-violet-700'
+                    : 'bg-ink-100 text-ink-700'
               }`}
             >
-              {statut === 'publie' ? 'Publié' : 'Brouillon'}
+              {statut === 'publie' ? 'Publié' : statut === 'programme' ? 'Programmé' : 'Brouillon'}
             </span>
           )}
         </header>
@@ -231,11 +259,16 @@ export default function ActuForm({ initial }: Props) {
       <Section title="Publication">
         {!isNew && (
           <Field label="Statut">
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               <Radio
                 checked={statut === 'brouillon'}
                 onChange={() => setStatut('brouillon')}
                 label="Brouillon"
+              />
+              <Radio
+                checked={statut === 'programme'}
+                onChange={() => setStatut('programme')}
+                label="Programmé"
               />
               <Radio
                 checked={statut === 'publie'}
@@ -243,6 +276,23 @@ export default function ActuForm({ initial }: Props) {
                 label="Publié"
               />
             </div>
+
+            {statut === 'programme' && (
+              <div className="mt-3">
+                <label className="block text-xs text-ink-600">Publier le</label>
+                <input
+                  type="datetime-local"
+                  value={publierLe}
+                  min={minProgInput()}
+                  onChange={(e) => setPublierLe(e.target.value)}
+                  className="mt-1 rounded-lg border border-ink-200 bg-white px-3 py-1.5 text-sm shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                />
+                <p className="mt-1 text-xs text-ink-500">
+                  Au moins 5 minutes dans le futur. La publication est automatique (toutes les 5 min).
+                </p>
+              </div>
+            )}
+
             {statut === 'publie' && initial?.publie_le && (
               <p className="mt-2 text-xs text-ink-500">
                 Publiée le {new Date(initial.publie_le).toLocaleString('fr-FR')}

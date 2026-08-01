@@ -13,8 +13,19 @@ type Body = {
   image_source?: ImageSource | null;
   tags?: string[];
   statut?: ActuStatut;
+  publier_le?: string | null;
   featured_jusqua?: string | null;
 };
+
+function validerProgrammation(publierLe: string | null | undefined): { iso: string } | { error: string } {
+  if (!publierLe) return { error: 'Date de programmation requise.' };
+  const when = new Date(publierLe);
+  if (Number.isNaN(when.getTime())) return { error: 'Date de programmation invalide.' };
+  if (when.getTime() < Date.now() + 5 * 60 * 1000) {
+    return { error: 'La programmation doit être au moins 5 minutes dans le futur.' };
+  }
+  return { iso: when.toISOString() };
+}
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   const caller = await getCurrentProfile();
@@ -49,6 +60,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     tags?: string[];
     statut?: ActuStatut;
     publie_le?: string | null;
+    publier_le?: string | null;
     featured_jusqua?: string | null;
   };
   const update: Update = {};
@@ -61,13 +73,20 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   if (Array.isArray(body.tags)) update.tags = body.tags;
   if (body.featured_jusqua !== undefined) update.featured_jusqua = body.featured_jusqua;
 
-  if (body.statut === 'brouillon' || body.statut === 'publie') {
+  if (body.statut === 'brouillon' || body.statut === 'publie' || body.statut === 'programme') {
     update.statut = body.statut;
-    // Première publication : set publie_le = now()
-    if (body.statut === 'publie' && existing.statut !== 'publie') {
-      update.publie_le = new Date().toISOString();
+    if (body.statut === 'publie') {
+      // Première publication : set publie_le = now(). On annule toute programmation.
+      if (existing.statut !== 'publie') update.publie_le = new Date().toISOString();
+      update.publier_le = null;
+    } else if (body.statut === 'programme') {
+      const v = validerProgrammation(body.publier_le);
+      if ('error' in v) return NextResponse.json({ error: v.error }, { status: 400 });
+      update.publier_le = v.iso;
+    } else {
+      // Retour en brouillon : on annule la programmation.
+      update.publier_le = null;
     }
-    // Repassage en brouillon : on garde publie_le pour historique (ou null si tu préfères reset)
   }
 
   const { error } = await supabase.from('actualites').update(update).eq('id', params.id);

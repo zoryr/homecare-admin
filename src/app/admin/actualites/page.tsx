@@ -8,11 +8,12 @@ import { createClient } from '@/lib/supabase/server';
 import { TAG_COLOR_CLASSES, getTagById } from '@/lib/actus/tags';
 import type { Actualite } from '@/lib/actus/types';
 
-type Filter = 'toutes' | 'publiees' | 'brouillons';
+type Filter = 'toutes' | 'publiees' | 'programmees' | 'brouillons';
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: 'toutes', label: 'Toutes' },
   { id: 'publiees', label: 'Publiées' },
+  { id: 'programmees', label: 'Programmées' },
   { id: 'brouillons', label: 'Brouillons' },
 ];
 
@@ -28,10 +29,13 @@ export default async function ActualitesListPage({
   let query = supabase
     .from('actualites')
     .select('*')
+    // Programmées d'abord (par date de publication la plus proche), puis le reste.
+    .order('publier_le', { ascending: true, nullsFirst: false })
     .order('publie_le', { ascending: false, nullsFirst: false })
     .order('cree_le', { ascending: false });
 
   if (filter === 'publiees') query = query.eq('statut', 'publie');
+  if (filter === 'programmees') query = query.eq('statut', 'programme');
   if (filter === 'brouillons') query = query.eq('statut', 'brouillon');
   if (q) query = query.ilike('titre', `%${q}%`);
 
@@ -102,8 +106,15 @@ function ActuCard({ actu }: { actu: Actualite }) {
   const isFeatured =
     actu.featured_jusqua !== null &&
     new Date(actu.featured_jusqua).getTime() >= new Date(new Date().toDateString()).getTime();
-  const dateRef = actu.publie_le ?? actu.cree_le;
-  const dateLabel = formatDistanceToNow(new Date(dateRef), { locale: fr, addSuffix: true });
+  const isProg = actu.statut === 'programme' && !!actu.publier_le;
+  const dateLabel = isProg
+    ? `Publiée le ${new Date(actu.publier_le!).toLocaleString('fr-FR', {
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+      })}`
+    : formatDistanceToNow(new Date(actu.publie_le ?? actu.cree_le), { locale: fr, addSuffix: true });
 
   return (
     <Link
@@ -126,6 +137,11 @@ function ActuCard({ actu }: { actu: Actualite }) {
           {actu.statut === 'brouillon' && (
             <span className="rounded-full bg-ink-900/75 px-2.5 py-0.5 text-xs font-medium text-white backdrop-blur">
               Brouillon
+            </span>
+          )}
+          {actu.statut === 'programme' && (
+            <span className="rounded-full bg-violet-600/90 px-2.5 py-0.5 text-xs font-medium text-white backdrop-blur">
+              Programmé
             </span>
           )}
           {isFeatured && (

@@ -1,6 +1,6 @@
 import type { ImageSource } from '@/lib/images/types';
 
-export type ActuStatut = 'brouillon' | 'publie';
+export type ActuStatut = 'brouillon' | 'programme' | 'publie';
 
 export interface Actualite {
   id: string;
@@ -12,6 +12,7 @@ export interface Actualite {
   tags: string[];
   statut: ActuStatut;
   publie_le: string | null;
+  publier_le: string | null;
   featured_jusqua: string | null;
   cree_par: string;
   cree_le: string;
