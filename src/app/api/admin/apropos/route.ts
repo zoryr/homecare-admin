@@ -57,7 +57,12 @@ export async function PATCH(request: NextRequest) {
     update.linkedin_url = body.linkedin_url?.toString().trim() || null;
 
   const admin = createAdminClient();
-  const { error } = await admin.from('apropos').update(update).eq('cle', body.cle);
+  // Upsert (et non update seul) : si la ligne 'public'/'interne' n'existe pas
+  // encore, un simple UPDATE ne créerait rien et le contenu serait perdu
+  // silencieusement (cause du bug "À propos invisible dans l'app").
+  const { error } = await admin
+    .from('apropos')
+    .upsert({ cle: body.cle, ...update }, { onConflict: 'cle' });
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

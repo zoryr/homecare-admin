@@ -27,7 +27,7 @@ Vue d'ensemble du système (admin + app + DB + storage + intégrations).
 | Notifications | Push automatiques + manuelles, heures silencieuses, stats Vu/Cliqué | `notifications`, `notification_deliveries`, `device_tokens`, `notification_settings` |
 | À propos | 2 versions éditables (publique avant login / interne), coordonnées agence | `apropos` |
 | Sondages | Anonymes avec contrôle de doublon, 6 types de questions, résultats agrégés | `survey_questions`, `surveys`, `survey_items`, `survey_participations`, `survey_responses` |
-| Documents | PDFs + images, catégories libres avec couleurs, visionneuse via OS | `documents`, `document_categories` |
+| Documents | PDF, images, vidéos verticales, flipbooks Heyzine, classés par rubrique (Infos pro / Avantages / Conseils) | `documents` |
 
 ## Tables Supabase (résumé)
 
@@ -55,8 +55,7 @@ Vue d'ensemble du système (admin + app + DB + storage + intégrations).
 - **`survey_responses`** : réponses brutes avec `submission_token` (UUID client). **Aucun `user_id` stocké ici.**
 
 ### Documents
-- **`document_categories`** : catégories libres (nom, couleur, ordre).
-- **`documents`** : fichier (URL + nom + taille + mime), catégorie, statut, épingle, notif_envoyee.
+- **`documents`** : fichier (URL + nom + taille + mime) ou `flipbook_url` (Heyzine), `rubrique` (`infos_pro | avantages | conseils`), `sous_rubrique`, `est_video_verticale`, `ordre`, statut, épingle, notif_envoyee. (Les catégories libres ont été supprimées, cf. migration 26.)
 
 ## Buckets Storage
 
