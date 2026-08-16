@@ -194,6 +194,7 @@ function ExceptionsSection({
   const [debut, setDebut] = useState('');
   const [fin, setFin] = useState('');
   const [raison, setRaison] = useState('');
+  const [standardOuvert, setStandardOuvert] = useState(false);
   const [saving, setSaving] = useState(false);
 
   async function add() {
@@ -205,7 +206,12 @@ function ExceptionsSection({
     const res = await fetch('/api/admin/horaires/exceptions', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ date_debut: debut, date_fin: fin, raison: raison.trim() || null }),
+      body: JSON.stringify({
+        date_debut: debut,
+        date_fin: fin,
+        raison: raison.trim() || null,
+        standard_ouvert: standardOuvert,
+      }),
     });
     setSaving(false);
     if (!res.ok) {
@@ -215,13 +221,23 @@ function ExceptionsSection({
     }
     const { id } = (await res.json()) as { id: string };
     setExceptions(
-      [...exceptions, { id, date_debut: debut, date_fin: fin, raison: raison.trim() || null, cree_par: '', cree_le: new Date().toISOString() }].sort(
-        (a, b) => a.date_debut.localeCompare(b.date_debut),
-      ),
+      [
+        ...exceptions,
+        {
+          id,
+          date_debut: debut,
+          date_fin: fin,
+          raison: raison.trim() || null,
+          standard_ouvert: standardOuvert,
+          cree_par: '',
+          cree_le: new Date().toISOString(),
+        },
+      ].sort((a, b) => a.date_debut.localeCompare(b.date_debut)),
     );
     setDebut('');
     setFin('');
     setRaison('');
+    setStandardOuvert(false);
     notifyOk('Fermeture ajoutée.');
   }
 
@@ -248,11 +264,16 @@ function ExceptionsSection({
               key={e.id}
               className="flex items-center justify-between gap-3 rounded-lg border border-ink-200 p-3 text-sm"
             >
-              <div>
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="font-medium text-ink-900">
                   {e.date_debut === e.date_fin ? e.date_debut : `${e.date_debut} → ${e.date_fin}`}
                 </span>
                 {e.raison ? <span className="text-ink-500"> · {e.raison}</span> : null}
+                {e.standard_ouvert ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">
+                    ☎️ Standard ouvert
+                  </span>
+                ) : null}
               </div>
               <button
                 type="button"
@@ -297,6 +318,23 @@ function ExceptionsSection({
           {saving ? 'Ajout…' : '+ Ajouter'}
         </button>
       </div>
+
+      <label className="mt-3 flex items-start gap-2 text-sm text-ink-700">
+        <input
+          type="checkbox"
+          checked={standardOuvert}
+          onChange={(e) => setStandardOuvert(e.target.checked)}
+          className="mt-0.5 h-4 w-4 rounded border-ink-300 accent-brand-500"
+        />
+        <span>
+          <span className="font-medium text-ink-800">
+            Le standard téléphonique reste ouvert pendant cette fermeture
+          </span>
+          <span className="block text-xs text-ink-500">
+            Cochez si les appels sont traités normalement malgré la fermeture physique.
+          </span>
+        </span>
+      </label>
     </section>
   );
 }

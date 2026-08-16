@@ -7,6 +7,7 @@ type Body = {
   date_debut?: string;
   date_fin?: string;
   raison?: string | null;
+  standard_ouvert?: boolean;
 };
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -35,6 +36,7 @@ export async function POST(request: NextRequest) {
       date_debut: debut,
       date_fin: fin,
       raison: body?.raison?.trim() || null,
+      standard_ouvert: body?.standard_ouvert === true,
       cree_par: caller.id,
     })
     .select('id')

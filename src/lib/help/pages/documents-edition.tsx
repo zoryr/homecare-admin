@@ -13,8 +13,8 @@ export const documentsEdition: HelpPage = {
       content: (
         <>
           <p>
-            C’est ici que vous <strong>déposez le fichier</strong> du document, choisissez sa
-            catégorie, et décidez quand le publier (avec ou sans notification).
+            C’est ici que vous <strong>déposez le contenu</strong> du document (fichier ou
+            flipbook), et décidez quand le publier (avec ou sans notification).
           </p>
         </>
       ),
@@ -24,14 +24,25 @@ export const documentsEdition: HelpPage = {
       title: 'Comment ça marche ?',
       content: (
         <>
-          <h4>1. Le fichier</h4>
+          <h4>1. Le type de contenu</h4>
           <p>
-            Glissez-déposez votre fichier sur la zone dédiée, ou cliquez pour ouvrir le sélecteur.
-            Formats acceptés&nbsp;: <strong>PDF, JPG, PNG, WEBP</strong> (max <strong>10 Mo</strong>)
-            et <strong>MP4, MOV</strong> pour les vidéos verticales (max <strong>50 Mo</strong>). Une
-            vidéo est détectée automatiquement et lue <strong>en plein écran, en boucle</strong>
-            dans l’app. Format conseillé&nbsp;: <strong>MP4 (H.264), vertical 9:16</strong> (comme un
-            smartphone tenu debout), durée <strong>15 à 90 secondes</strong>.
+            Pour les rubriques <strong>Avantages</strong> et <strong>Conseils</strong>, choisissez
+            d’abord le <strong>type de contenu</strong>&nbsp;: <strong>PDF</strong>,{' '}
+            <strong>Image</strong>, <strong>Vidéo verticale</strong> ou{' '}
+            <strong>Flipbook Heyzine</strong>. Un flipbook n’est pas un fichier&nbsp;: c’est un
+            <strong> lien Heyzine</strong> (voir plus bas). Le flipbook est désormais disponible dans
+            les <strong>trois rubriques</strong> (Infos pro via le Livret / Règlement, et
+            Avantages / Conseils via ce sélecteur).
+          </p>
+          <p>
+            Pour un fichier&nbsp;: glissez-déposez sur la zone dédiée ou cliquez pour ouvrir le
+            sélecteur. Formats acceptés&nbsp;: <strong>PDF, JPG, PNG, WEBP</strong> (max{' '}
+            <strong>10 Mo</strong>) et <strong>MP4, MOV</strong> pour les vidéos verticales (max{' '}
+            <strong>50 Mo</strong>). Une vidéo est lue <strong>en plein écran, en boucle</strong>
+            dans l’app. Format conseillé&nbsp;: <strong>MP4 (H.264), vertical 9:16</strong>, durée{' '}
+            <strong>15 à 90 secondes</strong>. Pour un flipbook&nbsp;: collez l’<strong>URL
+            Heyzine</strong> (bouton «&nbsp;Comment obtenir une URL Heyzine ?&nbsp;» pour la
+            marche à suivre).
           </p>
 
           <h4>2. Le rangement (rubrique)</h4>
@@ -45,8 +56,8 @@ export const documentsEdition: HelpPage = {
               (Notes de service ou Informations pour le personnel).
             </li>
             <li>
-              <strong>Avantages / Conseils</strong>&nbsp;: pas de sous-rubrique, mais une{' '}
-              <strong>catégorie</strong> libre (bouton «&nbsp;Gérer&nbsp;» pour en créer une).
+              <strong>Avantages / Conseils</strong>&nbsp;: pas de sous-rubrique. Le tri se fait par
+              glisser-déposer dans la liste, puis par date de publication.
             </li>
           </ul>
 

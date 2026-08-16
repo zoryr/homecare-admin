@@ -75,8 +75,8 @@ export const documentsListe: HelpPage = {
               salariés voient cette description dans la liste).
             </li>
             <li>
-              <strong>Catégories simples</strong>&nbsp;: 3 à 6 catégories suffisent (Règlement,
-              Notes de service, Procédures, Hygiène…). Trop, c’est confus.
+              <strong>Ordre par glisser-déposer</strong>&nbsp;: réorganisez les documents
+              d’Avantages / Conseils par simple glisser-déposer&nbsp;; les plus utiles en haut.
             </li>
             <li>
               <strong>Image de couverture</strong> facultative mais utile pour reconnaître un
@@ -101,10 +101,11 @@ export const documentsListe: HelpPage = {
             Au-delà, le téléchargement sur mobile devient lent (surtout en 4G dégradée). Pour
             un PDF dense, compressez-le ou découpez-le en plusieurs documents.
           </dd>
-          <dt>Que se passe-t-il quand je supprime une catégorie&nbsp;?</dt>
+          <dt>Comment ranger les documents d’Avantages / Conseils&nbsp;?</dt>
           <dd>
-            Les documents associés ne sont pas supprimés&nbsp;: ils restent disponibles, mais
-            sans catégorie. Vous pouvez les ré-affecter ensuite à une autre catégorie.
+            Par <strong>glisser-déposer</strong> dans la liste de la rubrique. Les catégories ont
+            été supprimées&nbsp;: l’organisation se fait uniquement par rubrique et par ordre
+            d’affichage.
           </dd>
         </dl>
       ),

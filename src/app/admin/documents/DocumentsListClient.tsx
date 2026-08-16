@@ -21,12 +21,11 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState, useTransition } from 'react';
 
 import { useToast } from '@/components/Toast';
-import { couleurStyle, formatFileSize, isPdf } from '@/lib/documents/constants';
+import { formatFileSize, isPdf } from '@/lib/documents/constants';
 import type {
-  DocumentCategorie,
+  DocumentRow,
   DocumentSousRubrique,
   DocumentStatut,
-  DocumentWithCategorie,
 } from '@/lib/documents/types';
 
 type Rubrique = 'infos_pro' | 'avantages' | 'conseils';
@@ -39,7 +38,7 @@ const STATUT_BADGE: Record<DocumentStatut, string> = {
 export default function DocumentsListClient({
   initialDocuments,
 }: {
-  initialDocuments: DocumentWithCategorie[];
+  initialDocuments: DocumentRow[];
 }) {
   const [tab, setTab] = useState<Rubrique>('infos_pro');
   const documents = initialDocuments;
@@ -73,7 +72,7 @@ export default function DocumentsListClient({
         <p className="text-xs font-medium uppercase tracking-[0.22em] text-brand-600">Documents</p>
         <h1 className="mt-1 font-display text-4xl font-medium text-ink-900">Documents</h1>
         <p className="mt-2 text-sm text-ink-500">
-          Organisés par rubrique. Seule « Infos professionnelles » est active pour le moment.
+          Organisés par rubrique. Le tri se fait par glisser-déposer, puis par date de publication.
         </p>
       </header>
 
@@ -134,7 +133,7 @@ function RubriqueList({
 }: {
   rubrique: 'avantages' | 'conseils';
   heading: string;
-  documents: DocumentWithCategorie[];
+  documents: DocumentRow[];
 }) {
   const { notify } = useToast();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
@@ -144,18 +143,6 @@ function RubriqueList({
     [documents, rubrique],
   );
   const [items, setItems] = useState(all);
-  const [catFilter, setCatFilter] = useState<string>('all');
-
-  const usedCats = useMemo(() => {
-    const map = new Map<string, DocumentCategorie>();
-    all.forEach((d) => {
-      if (d.categorie) map.set(d.categorie.id, d.categorie);
-    });
-    return Array.from(map.values());
-  }, [all]);
-
-  const canReorder = catFilter === 'all';
-  const visible = canReorder ? items : items.filter((d) => d.categorie_id === catFilter);
 
   async function onDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -189,32 +176,11 @@ function RubriqueList({
         </Link>
       </div>
 
-      {usedCats.length > 0 ? (
-        <div className="mb-4 flex items-center gap-2">
-          <label className="text-sm text-ink-500">Catégorie&nbsp;:</label>
-          <select
-            value={catFilter}
-            onChange={(e) => setCatFilter(e.target.value)}
-            className="rounded-lg border border-ink-200 bg-white px-3 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-          >
-            <option value="all">Toutes</option>
-            {usedCats.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.nom}
-              </option>
-            ))}
-          </select>
-          {!canReorder ? (
-            <span className="text-xs text-ink-400">(réordonnancement possible sur « Toutes »)</span>
-          ) : null}
-        </div>
-      ) : null}
-
-      {visible.length === 0 ? (
+      {items.length === 0 ? (
         <p className="rounded-xl border border-dashed border-ink-300 bg-ink-50 p-6 text-center text-sm text-ink-500">
           Aucun document pour le moment.
         </p>
-      ) : canReorder ? (
+      ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
           <SortableContext items={items.map((d) => d.id)} strategy={verticalListSortingStrategy}>
             <ul className="space-y-2">
@@ -224,12 +190,6 @@ function RubriqueList({
             </ul>
           </SortableContext>
         </DndContext>
-      ) : (
-        <ul className="space-y-2">
-          {visible.map((d) => (
-            <StaticDocRow key={d.id} doc={d} />
-          ))}
-        </ul>
       )}
     </section>
   );
@@ -280,7 +240,7 @@ function FlipbookSection({
 }: {
   sousRubrique: Extract<DocumentSousRubrique, 'livret_accueil' | 'reglement_interieur'>;
   heading: string;
-  existing: DocumentWithCategorie | null;
+  existing: DocumentRow | null;
 }) {
   const router = useRouter();
   const { notify } = useToast();
@@ -313,7 +273,7 @@ function FlipbookSection({
     <section className="rounded-2xl border border-ink-200 bg-white p-6">
       <h2 className="font-display text-xl font-medium text-ink-900">{heading}</h2>
       <p className="mt-1 text-sm text-ink-500">
-        Un seul flipbook Heyzine. Le rendu dans l&apos;app arrive en Phase 2.6.
+        Un seul flipbook Heyzine, affiché dans l&apos;app.
       </p>
 
       <div className="mt-4 space-y-4">
@@ -380,7 +340,7 @@ function DocsSection({
 }: {
   sousRubrique: Extract<DocumentSousRubrique, 'notes_service' | 'informations_personnel'>;
   heading: string;
-  docs: DocumentWithCategorie[];
+  docs: DocumentRow[];
 }) {
   const { notify } = useToast();
   const [items, setItems] = useState(docs);
@@ -437,16 +397,15 @@ function DocsSection({
   );
 }
 
-function docIcon(doc: DocumentWithCategorie): { node: React.ReactNode; cls: string } {
+function docIcon(doc: DocumentRow): { node: React.ReactNode; cls: string } {
   if (doc.flipbook_url) return { node: <BookText className="h-5 w-5" />, cls: 'bg-amber-50 text-amber-600' };
   if (doc.est_video_verticale) return { node: <Film className="h-5 w-5" />, cls: 'bg-purple-50 text-purple-600' };
   if (doc.mime_type && isPdf(doc.mime_type)) return { node: <FileText className="h-5 w-5" />, cls: 'bg-rose-50 text-rose-500' };
   return { node: <ImageIcon className="h-5 w-5" />, cls: 'bg-blue-50 text-blue-500' };
 }
 
-function DocRowBody({ doc }: { doc: DocumentWithCategorie }) {
+function DocRowBody({ doc }: { doc: DocumentRow }) {
   const icon = docIcon(doc);
-  const catStyle = doc.categorie ? couleurStyle(doc.categorie.couleur) : null;
   return (
     <>
       <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${icon.cls}`}>
@@ -459,14 +418,6 @@ function DocRowBody({ doc }: { doc: DocumentWithCategorie }) {
           {doc.fichier_taille ? ` · ${formatFileSize(doc.fichier_taille)}` : ''}
         </p>
       </div>
-      {doc.categorie && catStyle ? (
-        <span
-          className="hidden rounded-full px-2 py-0.5 text-xs font-medium sm:inline"
-          style={{ backgroundColor: catStyle.bg, color: catStyle.text }}
-        >
-          {doc.categorie.nom}
-        </span>
-      ) : null}
       <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUT_BADGE[doc.statut]}`}>
         {doc.statut === 'publie' ? 'Publié' : 'Brouillon'}
       </span>
@@ -480,7 +431,7 @@ function DocRowBody({ doc }: { doc: DocumentWithCategorie }) {
   );
 }
 
-function SortableDocRow({ doc }: { doc: DocumentWithCategorie }) {
+function SortableDocRow({ doc }: { doc: DocumentRow }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: doc.id,
   });
@@ -505,15 +456,6 @@ function SortableDocRow({ doc }: { doc: DocumentWithCategorie }) {
       >
         <GripVertical className="h-5 w-5" />
       </button>
-      <DocRowBody doc={doc} />
-    </li>
-  );
-}
-
-function StaticDocRow({ doc }: { doc: DocumentWithCategorie }) {
-  return (
-    <li className="flex items-center gap-3 rounded-xl border border-ink-200 bg-white p-3">
-      <span className="w-5 shrink-0" aria-hidden />
       <DocRowBody doc={doc} />
     </li>
   );

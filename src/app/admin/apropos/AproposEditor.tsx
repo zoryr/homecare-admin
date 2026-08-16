@@ -16,14 +16,14 @@ type Props = {
 
 const TABS: { id: AproposKey; label: string; help: string }[] = [
   {
-    id: 'public',
-    label: 'Public',
-    help: "Visible par tout le monde, AVANT login (page d'accueil de l'app et site public).",
+    id: 'interne',
+    label: 'Interne (app salariés)',
+    help: 'C\'est le contenu affiché dans l\'écran « À propos » de l\'app, pour les salariés connectés. C\'est très probablement l\'onglet que vous souhaitez modifier.',
   },
   {
-    id: 'interne',
-    label: 'Interne',
-    help: 'Visible uniquement par les salariés connectés (depuis l\'écran "À propos" dans l\'app).',
+    id: 'public',
+    label: 'Public (avant connexion)',
+    help: "Visible AVANT connexion uniquement : écran d'accueil de l'app et site public. À modifier seulement pour la vitrine publique.",
   },
 ];
 
@@ -32,7 +32,7 @@ export default function AproposEditor({ publicRow, interneRow }: Props) {
   const { notify } = useToast();
   const [, startTransition] = useTransition();
 
-  const [tab, setTab] = useState<AproposKey>('public');
+  const [tab, setTab] = useState<AproposKey>('interne');
   const [pub, setPub] = useState<Apropos>(publicRow);
   const [intRow, setIntRow] = useState<Apropos>(interneRow);
   const [submitting, setSubmitting] = useState(false);

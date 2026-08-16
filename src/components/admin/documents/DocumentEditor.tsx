@@ -4,7 +4,9 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
   ArrowLeft,
-  FolderCog,
+  BookOpen,
+  FileText,
+  Film,
   Image as ImageIcon,
   Pin,
   Send,
@@ -13,19 +15,13 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useMemo, useState, useTransition } from 'react';
+import { useState, useTransition } from 'react';
 
-import CategoriesModal from './CategoriesModal';
 import FileUpload, { type UploadedFile } from './FileUpload';
 import ImagePicker from '@/components/admin/ImagePicker';
 import { useToast } from '@/components/Toast';
-import {
-  couleurStyle,
-  isImage,
-  isPdf,
-} from '@/lib/documents/constants';
+import { isImage, isPdf } from '@/lib/documents/constants';
 import type {
-  DocumentCategorie,
   DocumentRow,
   DocumentRubrique,
   DocumentSousRubrique,
@@ -35,8 +31,17 @@ import type { ImageSource } from '@/lib/images/types';
 
 type Props = {
   initial: DocumentRow | null;
-  categories: DocumentCategorie[];
 };
+
+/** Type de contenu pour Avantages / Conseils. */
+type ContentType = 'pdf' | 'image' | 'video' | 'flipbook';
+
+const CONTENT_TYPES: Array<{ value: ContentType; label: string; icon: React.ReactNode }> = [
+  { value: 'pdf', label: '📄 PDF', icon: <FileText className="h-4 w-4" /> },
+  { value: 'image', label: '🖼️ Image', icon: <ImageIcon className="h-4 w-4" /> },
+  { value: 'video', label: '🎬 Vidéo verticale', icon: <Film className="h-4 w-4" /> },
+  { value: 'flipbook', label: '📕 Flipbook Heyzine', icon: <BookOpen className="h-4 w-4" /> },
+];
 
 const STATUT_BADGE: Record<DocumentStatut, string> = {
   brouillon: 'bg-slate-100 text-slate-700',
@@ -47,7 +52,15 @@ const STATUT_LABEL: Record<DocumentStatut, string> = {
   publie: 'Publié',
 };
 
-export default function DocumentEditor({ initial, categories: initialCats }: Props) {
+function initialContentType(initial: DocumentRow | null): ContentType {
+  if (!initial) return 'pdf';
+  if (initial.flipbook_url) return 'flipbook';
+  if (initial.est_video_verticale) return 'video';
+  if (initial.mime_type && isImage(initial.mime_type)) return 'image';
+  return 'pdf';
+}
+
+export default function DocumentEditor({ initial }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { notify } = useToast();
@@ -68,14 +81,18 @@ export default function DocumentEditor({ initial, categories: initialCats }: Pro
       : 'notes_service',
   );
 
-  const [categories, setCategories] = useState(initialCats);
+  // Type de contenu : uniquement pour Avantages / Conseils (Infos pro = fichier).
+  const showContentType = rubrique === 'avantages' || rubrique === 'conseils';
+  const [contentType, setContentType] = useState<ContentType>(initialContentType(initial));
+  const isFlipbookMode = showContentType && contentType === 'flipbook';
+
   const [statut, setStatut] = useState<DocumentStatut>(initial?.statut ?? 'brouillon');
   const [titre, setTitre] = useState(initial?.titre ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
-  const [categorieId, setCategorieId] = useState<string | null>(initial?.categorie_id ?? null);
+  const [flipbookUrl, setFlipbookUrl] = useState(initial?.flipbook_url ?? '');
 
   const [file, setFile] = useState<UploadedFile | null>(
-    initial
+    initial && initial.fichier_url
       ? {
           url: initial.fichier_url,
           nom: initial.fichier_nom,
@@ -93,28 +110,51 @@ export default function DocumentEditor({ initial, categories: initialCats }: Pro
 
   const [submitting, setSubmitting] = useState(false);
   const [busyAction, setBusyAction] = useState<null | 'publish' | 'unpublish' | 'delete'>(null);
-  const [catModalOpen, setCatModalOpen] = useState(false);
 
-  const folderSlug = useMemo(() => {
-    const cat = categories.find((c) => c.id === categorieId);
-    if (!cat) return 'sans-cat';
-    return slugify(cat.nom);
-  }, [categories, categorieId]);
+  const folderSlug = rubrique;
 
   function ensureRequired(): boolean {
     if (!titre.trim()) {
       notify('error', 'Le titre est obligatoire.');
       return false;
     }
-    if (!file) {
-      notify('error', 'Téléversez un fichier (PDF ou image).');
+    if (isFlipbookMode) {
+      if (!flipbookUrl.trim()) {
+        notify('error', "Renseignez l'URL du flipbook Heyzine.");
+        return false;
+      }
+    } else if (!file) {
+      notify('error', 'Téléversez un fichier (PDF, image ou vidéo).');
       return false;
     }
     return true;
   }
 
+  function buildPayload() {
+    const base = {
+      titre,
+      description,
+      image_couverture_url: coverUrl,
+      image_source: coverSource,
+      featured_jusqua: featuredJusqua,
+      rubrique,
+      sous_rubrique: rubrique === 'infos_pro' ? sousRubrique : null,
+    };
+    if (isFlipbookMode) {
+      return { ...base, flipbook_url: flipbookUrl.trim() || null };
+    }
+    return {
+      ...base,
+      fichier_url: file!.url,
+      fichier_nom: file!.nom,
+      fichier_taille: file!.taille,
+      mime_type: file!.mime_type,
+      flipbook_url: null,
+    };
+  }
+
   async function handleSave() {
-    if (!ensureRequired() || !file) return;
+    if (!ensureRequired()) return;
     setSubmitting(true);
 
     const url = isNew ? '/api/admin/documents' : `/api/admin/documents/${initial!.id}`;
@@ -123,20 +163,7 @@ export default function DocumentEditor({ initial, categories: initialCats }: Pro
     const res = await fetch(url, {
       method,
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        titre,
-        description,
-        categorie_id: categorieId,
-        fichier_url: file.url,
-        fichier_nom: file.nom,
-        fichier_taille: file.taille,
-        mime_type: file.mime_type,
-        image_couverture_url: coverUrl,
-        image_source: coverSource,
-        featured_jusqua: featuredJusqua,
-        rubrique,
-        sous_rubrique: rubrique === 'infos_pro' ? sousRubrique : null,
-      }),
+      body: JSON.stringify(buildPayload()),
     });
     setSubmitting(false);
 
@@ -154,18 +181,24 @@ export default function DocumentEditor({ initial, categories: initialCats }: Pro
     }
   }
 
+  async function handleSaveSilent() {
+    await fetch(`/api/admin/documents/${initial!.id}`, {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(buildPayload()),
+    });
+  }
+
   async function handlePublish() {
     if (!ensureRequired()) return;
     if (statut === 'publie') return;
 
-    // S'il y a des modifs non sauvegardées (en édition), enregistre d'abord
     if (!isNew) {
       await handleSaveSilent();
     }
     setBusyAction('publish');
     const targetId = isNew ? null : initial!.id;
     if (!targetId) {
-      // En création il faut d'abord sauvegarder pour avoir un id
       setBusyAction(null);
       notify('error', 'Enregistrez d’abord le document avant de publier.');
       return;
@@ -185,28 +218,6 @@ export default function DocumentEditor({ initial, categories: initialCats }: Pro
     notify('success', 'Document publié.');
     setStatut('publie');
     startTransition(() => router.refresh());
-  }
-
-  async function handleSaveSilent() {
-    if (!file) return;
-    await fetch(`/api/admin/documents/${initial!.id}`, {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        titre,
-        description,
-        categorie_id: categorieId,
-        fichier_url: file.url,
-        fichier_nom: file.nom,
-        fichier_taille: file.taille,
-        mime_type: file.mime_type,
-        image_couverture_url: coverUrl,
-        image_source: coverSource,
-        featured_jusqua: featuredJusqua,
-        rubrique,
-        sous_rubrique: rubrique === 'infos_pro' ? sousRubrique : null,
-      }),
-    });
   }
 
   async function handleUnpublish() {
@@ -251,14 +262,6 @@ export default function DocumentEditor({ initial, categories: initialCats }: Pro
     setCoverSource(null);
   }
 
-  function onCategoriesChanged(next: DocumentCategorie[]) {
-    setCategories(next);
-    // Si la catégorie sélectionnée a été supprimée, on clear
-    if (categorieId && !next.find((c) => c.id === categorieId)) {
-      setCategorieId(null);
-    }
-  }
-
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -269,34 +272,75 @@ export default function DocumentEditor({ initial, categories: initialCats }: Pro
           <ArrowLeft className="h-4 w-4" />
           Retour aux documents
         </Link>
-        <span
-          className={`rounded-full px-3 py-1 text-xs font-medium ${STATUT_BADGE[statut]}`}
-        >
+        <span className={`rounded-full px-3 py-1 text-xs font-medium ${STATUT_BADGE[statut]}`}>
           {STATUT_LABEL[statut]}
         </span>
       </div>
 
       <header className="mb-8">
-        <p className="text-xs font-medium uppercase tracking-[0.22em] text-brand-600">
-          Documents
-        </p>
+        <p className="text-xs font-medium uppercase tracking-[0.22em] text-brand-600">Documents</p>
         <h1 className="mt-1 font-display text-3xl font-medium text-ink-900 sm:text-4xl">
           {isNew ? 'Nouveau document' : 'Modifier le document'}
         </h1>
         <p className="mt-2 text-sm text-ink-500">
-          PDF ou image. 10 MB max.
+          {isFlipbookMode ? 'Flipbook Heyzine (lien).' : 'PDF, image ou vidéo verticale.'}
         </p>
       </header>
 
       <div className="space-y-6">
-        <Section title="Fichier" required>
-          <FileUpload
-            value={file}
-            onChange={setFile}
-            slugTitre={titre}
-            folderSlug={folderSlug}
-          />
-        </Section>
+        {showContentType ? (
+          <Section title="Type de contenu">
+            <div className="flex flex-wrap gap-2">
+              {CONTENT_TYPES.map((ct) => (
+                <button
+                  key={ct.value}
+                  type="button"
+                  onClick={() => setContentType(ct.value)}
+                  className={
+                    contentType === ct.value
+                      ? 'inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white'
+                      : 'inline-flex items-center gap-2 rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-700 hover:border-brand-300'
+                  }
+                >
+                  {ct.icon}
+                  {ct.label}
+                </button>
+              ))}
+            </div>
+          </Section>
+        ) : null}
+
+        {isFlipbookMode ? (
+          <Section title="Flipbook Heyzine" required>
+            <Field label="URL du flipbook" required>
+              <input
+                type="url"
+                value={flipbookUrl}
+                onChange={(e) => setFlipbookUrl(e.target.value)}
+                placeholder="https://heyzine.com/flip-book/xxxxx"
+                className="block w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+              />
+            </Field>
+            <details className="text-sm text-ink-600">
+              <summary className="cursor-pointer text-brand-700 hover:underline">
+                Comment obtenir une URL Heyzine ?
+              </summary>
+              <div className="mt-2 space-y-1 rounded-lg border border-ink-100 bg-ink-50 p-3 text-xs text-ink-600">
+                <p>1. Rendez-vous sur heyzine.com et importez votre PDF.</p>
+                <p>2. Une fois le flipbook créé, cliquez sur « Partager ».</p>
+                <p>
+                  3. Copiez le lien public (de la forme{' '}
+                  <span className="font-mono">https://heyzine.com/flip-book/…</span>) et collez-le
+                  ci-dessus.
+                </p>
+              </div>
+            </details>
+          </Section>
+        ) : (
+          <Section title="Fichier" required>
+            <FileUpload value={file} onChange={setFile} slugTitre={titre} folderSlug={folderSlug} />
+          </Section>
+        )}
 
         <Section title="Informations">
           <Field label="Titre" required>
@@ -328,48 +372,11 @@ export default function DocumentEditor({ initial, categories: initialCats }: Pro
               </select>
             </Field>
           ) : null}
-          <Field label="Catégorie">
-            <div className="flex flex-wrap items-center gap-2">
-              <select
-                value={categorieId ?? ''}
-                onChange={(e) => setCategorieId(e.target.value || null)}
-                className="flex-1 min-w-[200px] rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-              >
-                <option value="">Aucune catégorie</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nom}
-                  </option>
-                ))}
-              </select>
-              {categorieId ? (
-                <span
-                  className="rounded-full px-2 py-0.5 text-xs font-medium"
-                  style={(() => {
-                    const cat = categories.find((c) => c.id === categorieId);
-                    if (!cat) return undefined;
-                    const s = couleurStyle(cat.couleur);
-                    return { backgroundColor: s.bg, color: s.text };
-                  })()}
-                >
-                  {categories.find((c) => c.id === categorieId)?.nom}
-                </span>
-              ) : null}
-              <button
-                type="button"
-                onClick={() => setCatModalOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm font-medium text-ink-700 hover:border-brand-300"
-              >
-                <FolderCog className="h-4 w-4" />
-                Gérer
-              </button>
-            </div>
-          </Field>
         </Section>
 
         <Section
           title="Image de couverture (optionnel)"
-          help="Sinon un placeholder selon le type (PDF ou image) sera affiché dans la liste."
+          help="Sinon un placeholder selon le type sera affiché dans la liste."
         >
           <div className="space-y-3">
             {file && isImage(file.mime_type) && coverUrl !== file.url ? (
@@ -392,7 +399,7 @@ export default function DocumentEditor({ initial, categories: initialCats }: Pro
               bucket="actus-images"
               folder="documents-covers"
             />
-            {coverUrl && file && isPdf(file.mime_type) ? (
+            {coverUrl && (isFlipbookMode || (file && isPdf(file.mime_type))) ? (
               <button
                 type="button"
                 onClick={clearCover}
@@ -435,14 +442,11 @@ export default function DocumentEditor({ initial, categories: initialCats }: Pro
                       className="rounded-md border border-ink-200 bg-white px-2 py-1 text-xs"
                     />
                     <span className="ml-2 text-xs text-ink-500">
-                      jusqu’au{' '}
-                      {format(new Date(featuredJusqua), 'd MMM yyyy', { locale: fr })}
+                      jusqu’au {format(new Date(featuredJusqua), 'd MMM yyyy', { locale: fr })}
                     </span>
                   </span>
                 ) : (
-                  <span className="block text-xs text-ink-500">
-                    Default +7 jours quand activé.
-                  </span>
+                  <span className="block text-xs text-ink-500">Default +7 jours quand activé.</span>
                 )}
               </span>
             </label>
@@ -466,8 +470,7 @@ export default function DocumentEditor({ initial, categories: initialCats }: Pro
 
             {statut === 'publie' && initial?.publie_le ? (
               <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
-                Publié le{' '}
-                {format(new Date(initial.publie_le), "d MMMM yyyy 'à' HH:mm", { locale: fr })}.
+                Publié le {format(new Date(initial.publie_le), "d MMMM yyyy 'à' HH:mm", { locale: fr })}.
               </p>
             ) : null}
           </div>
@@ -525,27 +528,7 @@ export default function DocumentEditor({ initial, categories: initialCats }: Pro
           )}
         </div>
       </div>
-
-      {catModalOpen ? (
-        <CategoriesModal
-          categories={categories}
-          onClose={() => setCatModalOpen(false)}
-          onChange={onCategoriesChanged}
-        />
-      ) : null}
     </div>
-  );
-}
-
-function slugify(s: string): string {
-  return (
-    s
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[̀-ͯ]/g, '')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .slice(0, 40) || 'sans-cat'
   );
 }
 

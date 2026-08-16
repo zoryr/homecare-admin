@@ -10,29 +10,10 @@ export type DocumentSousRubrique =
   | 'notes_service'
   | 'informations_personnel';
 
-export type DocumentCategorieCouleur =
-  | 'gray'
-  | 'blue'
-  | 'green'
-  | 'amber'
-  | 'red'
-  | 'purple'
-  | 'rose';
-
-export interface DocumentCategorie {
-  id: string;
-  nom: string;
-  ordre: number;
-  couleur: DocumentCategorieCouleur;
-  cree_par: string;
-  cree_le: string;
-}
-
 export interface DocumentRow {
   id: string;
   titre: string;
   description: string;
-  categorie_id: string | null;
   fichier_url: string;
   fichier_nom: string;
   fichier_taille: number;
@@ -51,8 +32,4 @@ export interface DocumentRow {
   cree_par: string;
   cree_le: string;
   modifie_le: string;
-}
-
-export interface DocumentWithCategorie extends DocumentRow {
-  categorie: DocumentCategorie | null;
 }

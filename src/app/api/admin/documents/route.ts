@@ -9,7 +9,6 @@ import type { ImageSource } from '@/lib/images/types';
 type Body = {
   titre?: string;
   description?: string;
-  categorie_id?: string | null;
   fichier_url?: string;
   fichier_nom?: string;
   fichier_taille?: number;
@@ -19,6 +18,7 @@ type Body = {
   featured_jusqua?: string | null;
   rubrique?: DocumentRubrique;
   sous_rubrique?: DocumentSousRubrique | null;
+  flipbook_url?: string | null;
   ordre?: number;
 };
 
@@ -32,42 +32,55 @@ export async function POST(request: NextRequest) {
   if (!body?.titre?.trim()) {
     return NextResponse.json({ error: 'Titre requis' }, { status: 400 });
   }
-  if (!body.fichier_url || !body.fichier_nom || !body.mime_type) {
-    return NextResponse.json({ error: 'Fichier requis' }, { status: 400 });
-  }
-  if (!(ACCEPTED_MIME_TYPES as readonly string[]).includes(body.mime_type)) {
-    return NextResponse.json({ error: 'Type de fichier non supporté' }, { status: 400 });
-  }
-  const taille = Number(body.fichier_taille ?? 0);
-  const maxSize = getMaxFileSize(body.mime_type);
-  if (!Number.isFinite(taille) || taille <= 0 || taille > maxSize) {
-    return NextResponse.json(
-      { error: `Taille de fichier invalide (max ${Math.round(maxSize / 1024 / 1024)} MB)` },
-      { status: 400 },
-    );
+
+  const flipbookUrl = body.flipbook_url?.trim() || null;
+  const isFlipbook = flipbookUrl !== null;
+
+  // Un document est soit un fichier (PDF/image/vidéo), soit un flipbook (URL Heyzine).
+  let insertPayload: Record<string, unknown> = {
+    titre: body.titre.trim(),
+    description: body.description ?? '',
+    image_couverture_url: body.image_couverture_url ?? null,
+    image_source: body.image_source ?? null,
+    featured_jusqua: body.featured_jusqua ?? null,
+    rubrique: body.rubrique ?? 'infos_pro',
+    sous_rubrique: body.sous_rubrique ?? null,
+    ordre: body.ordre ?? 0,
+    statut: 'brouillon',
+    cree_par: caller.id,
+  };
+
+  if (isFlipbook) {
+    insertPayload = { ...insertPayload, flipbook_url: flipbookUrl, est_video_verticale: false };
+  } else {
+    if (!body.fichier_url || !body.fichier_nom || !body.mime_type) {
+      return NextResponse.json({ error: 'Fichier requis' }, { status: 400 });
+    }
+    if (!(ACCEPTED_MIME_TYPES as readonly string[]).includes(body.mime_type)) {
+      return NextResponse.json({ error: 'Type de fichier non supporté' }, { status: 400 });
+    }
+    const taille = Number(body.fichier_taille ?? 0);
+    const maxSize = getMaxFileSize(body.mime_type);
+    if (!Number.isFinite(taille) || taille <= 0 || taille > maxSize) {
+      return NextResponse.json(
+        { error: `Taille de fichier invalide (max ${Math.round(maxSize / 1024 / 1024)} MB)` },
+        { status: 400 },
+      );
+    }
+    insertPayload = {
+      ...insertPayload,
+      fichier_url: body.fichier_url,
+      fichier_nom: body.fichier_nom,
+      fichier_taille: taille,
+      mime_type: body.mime_type,
+      est_video_verticale: body.mime_type.startsWith('video/'),
+    };
   }
 
   const admin = createAdminClient();
   const { data, error } = await admin
     .from('documents')
-    .insert({
-      titre: body.titre.trim(),
-      description: body.description ?? '',
-      categorie_id: body.categorie_id ?? null,
-      fichier_url: body.fichier_url,
-      fichier_nom: body.fichier_nom,
-      fichier_taille: taille,
-      mime_type: body.mime_type,
-      image_couverture_url: body.image_couverture_url ?? null,
-      image_source: body.image_source ?? null,
-      featured_jusqua: body.featured_jusqua ?? null,
-      rubrique: body.rubrique ?? 'infos_pro',
-      sous_rubrique: body.sous_rubrique ?? null,
-      ordre: body.ordre ?? 0,
-      est_video_verticale: body.mime_type.startsWith('video/'),
-      statut: 'brouillon',
-      cree_par: caller.id,
-    })
+    .insert(insertPayload)
     .select('id')
     .single();
 

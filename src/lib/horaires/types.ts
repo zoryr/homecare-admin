@@ -15,6 +15,7 @@ export interface HoraireException {
   date_debut: string; // YYYY-MM-DD
   date_fin: string; // YYYY-MM-DD
   raison: string | null;
+  standard_ouvert: boolean;
   cree_par: string;
   cree_le: string;
 }
