@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
+import { createAndDispatchNotification } from '@/lib/notifications/create';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getCurrentProfile } from '@/lib/supabase/get-profile';
 import { createClient } from '@/lib/supabase/server';
 import type { ActuStatut } from '@/lib/actus/types';
@@ -43,7 +45,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   // Récupère l'état actuel pour gérer la transition publie_le
   const { data: existing, error: fetchError } = await supabase
     .from('actualites')
-    .select('statut, publie_le')
+    .select('statut, publie_le, titre')
     .eq('id', params.id)
     .single();
 
@@ -93,6 +95,35 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Notification push à la PREMIÈRE publication (le formulaire publie via ce
+  // PATCH ; sans ça aucune notif n'était envoyée pour une actu — bug Élodie).
+  const devientPublie = body.statut === 'publie' && existing.statut !== 'publie';
+  if (devientPublie) {
+    try {
+      const admin = createAdminClient();
+      const { data: settings } = await admin
+        .from('notification_settings')
+        .select('auto_on_actu_publish')
+        .eq('id', 1)
+        .single();
+      if (settings?.auto_on_actu_publish) {
+        const titre = update.titre ?? existing.titre ?? '';
+        await createAndDispatchNotification({
+          titre: 'Nouvelle actualité',
+          message: titre.slice(0, 200),
+          source: 'auto_actu',
+          source_id: params.id,
+          deeplink_path: `/actualites/${params.id}`,
+          audience: 'all',
+          created_by: caller.id,
+        });
+      }
+    } catch (err) {
+      // On loggue sans faire échouer la publication.
+      console.error('[patch actu] auto-notification failed:', err);
+    }
   }
 
   return NextResponse.json({ ok: true });

@@ -29,6 +29,9 @@ export interface DocumentRow {
   flipbook_url: string | null;
   ordre: number;
   est_video_verticale: boolean;
+  contenu_html: string | null;
+  contenu_json: unknown | null;
+  est_article: boolean;
   cree_par: string;
   cree_le: string;
   modifie_le: string;

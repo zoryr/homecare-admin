@@ -28,11 +28,17 @@ export const documentsEdition: HelpPage = {
           <p>
             Pour les rubriques <strong>Avantages</strong> et <strong>Conseils</strong>, choisissez
             d’abord le <strong>type de contenu</strong>&nbsp;: <strong>PDF</strong>,{' '}
-            <strong>Image</strong>, <strong>Vidéo verticale</strong> ou{' '}
-            <strong>Flipbook Heyzine</strong>. Un flipbook n’est pas un fichier&nbsp;: c’est un
-            <strong> lien Heyzine</strong> (voir plus bas). Le flipbook est désormais disponible dans
-            les <strong>trois rubriques</strong> (Infos pro via le Livret / Règlement, et
-            Avantages / Conseils via ce sélecteur).
+            <strong>Image</strong>, <strong>Vidéo verticale</strong>,{' '}
+            <strong>Flipbook Heyzine</strong> ou <strong>Article rédigé</strong>. Un flipbook n’est
+            pas un fichier&nbsp;: c’est un <strong>lien Heyzine</strong> (voir plus bas). Le flipbook
+            est disponible dans les <strong>trois rubriques</strong> (Infos pro via le Livret /
+            Règlement, et Avantages / Conseils via ce sélecteur).
+          </p>
+          <p>
+            L’<strong>Article rédigé</strong> vous permet d’écrire un contenu directement dans
+            l’app, avec le <strong>même éditeur que les actualités</strong> (titres, listes, gras,
+            encadrés colorés, images). Aucun fichier ni lien externe&nbsp;: idéal pour une note ou
+            un guide court. Il s’affiche dans l’app comme une page dédiée.
           </p>
           <p>
             Pour un fichier&nbsp;: glissez-déposez sur la zone dédiée ou cliquez pour ouvrir le

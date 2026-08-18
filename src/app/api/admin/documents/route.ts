@@ -20,7 +20,21 @@ type Body = {
   sous_rubrique?: DocumentSousRubrique | null;
   flipbook_url?: string | null;
   ordre?: number;
+  est_article?: boolean;
+  contenu_html?: string | null;
+  contenu_json?: unknown | null;
 };
+
+/** Retire le fragment #page/N (Heyzine) pour ouvrir le flipbook à la page 1. */
+function normalizeFlipbookUrl(u: string | null | undefined): string | null {
+  const v = u?.trim();
+  if (!v) return null;
+  return v.split('#')[0].replace(/([?&])(page|p)=[^&]*/gi, '$1').replace(/[?&]$/, '') || null;
+}
+
+function articleIsEmpty(html: string | null | undefined): boolean {
+  return !html || html.replace(/<[^>]+>/g, '').trim().length === 0;
+}
 
 export async function POST(request: NextRequest) {
   const caller = await getCurrentProfile();
@@ -33,10 +47,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Titre requis' }, { status: 400 });
   }
 
-  const flipbookUrl = body.flipbook_url?.trim() || null;
+  const isArticle = body.est_article === true;
+  const flipbookUrl = isArticle ? null : normalizeFlipbookUrl(body.flipbook_url);
   const isFlipbook = flipbookUrl !== null;
 
-  // Un document est soit un fichier (PDF/image/vidéo), soit un flipbook (URL Heyzine).
+  // Un document est soit un article rédigé, soit un fichier (PDF/image/vidéo),
+  // soit un flipbook (URL Heyzine).
   let insertPayload: Record<string, unknown> = {
     titre: body.titre.trim(),
     description: body.description ?? '',
@@ -47,10 +63,21 @@ export async function POST(request: NextRequest) {
     sous_rubrique: body.sous_rubrique ?? null,
     ordre: body.ordre ?? 0,
     statut: 'brouillon',
+    est_article: isArticle,
     cree_par: caller.id,
   };
 
-  if (isFlipbook) {
+  if (isArticle) {
+    if (articleIsEmpty(body.contenu_html)) {
+      return NextResponse.json({ error: "Contenu de l'article requis" }, { status: 400 });
+    }
+    insertPayload = {
+      ...insertPayload,
+      contenu_html: body.contenu_html,
+      contenu_json: body.contenu_json ?? null,
+      est_video_verticale: false,
+    };
+  } else if (isFlipbook) {
     insertPayload = { ...insertPayload, flipbook_url: flipbookUrl, est_video_verticale: false };
   } else {
     if (!body.fichier_url || !body.fichier_nom || !body.mime_type) {

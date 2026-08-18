@@ -3,6 +3,7 @@ import { fr } from 'date-fns/locale';
 import Image from 'next/image';
 import Link from 'next/link';
 
+import DuplicateActuButton from './DuplicateActuButton';
 import SearchBar from './SearchBar';
 import { createClient } from '@/lib/supabase/server';
 import { TAG_COLOR_CLASSES, getTagById } from '@/lib/actus/tags';
@@ -117,10 +118,12 @@ function ActuCard({ actu }: { actu: Actualite }) {
     : formatDistanceToNow(new Date(actu.publie_le ?? actu.cree_le), { locale: fr, addSuffix: true });
 
   return (
-    <Link
-      href={`/admin/actualites/${actu.id}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-ink-200 bg-white transition hover:border-brand-300 hover:shadow-soft"
-    >
+    <div className="relative">
+      <DuplicateActuButton id={actu.id} />
+      <Link
+        href={`/admin/actualites/${actu.id}`}
+        className="group flex flex-col overflow-hidden rounded-2xl border border-ink-200 bg-white transition hover:border-brand-300 hover:shadow-soft"
+      >
       <div className="relative aspect-video w-full bg-ink-100">
         {actu.image_couverture_url ? (
           <Image
@@ -171,6 +174,7 @@ function ActuCard({ actu }: { actu: Actualite }) {
           <span className="text-ink-400">{dateLabel}</span>
         </div>
       </div>
-    </Link>
+      </Link>
+    </div>
   );
 }

@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
+import { createAndDispatchNotification } from '@/lib/notifications/create';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getCurrentProfile } from '@/lib/supabase/get-profile';
 import { createClient } from '@/lib/supabase/server';
 import type { ActuStatut } from '@/lib/actus/types';
@@ -76,6 +78,31 @@ export async function POST(request: NextRequest) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Notification push si l'actu est créée directement en "publié".
+  if (statut === 'publie') {
+    try {
+      const admin = createAdminClient();
+      const { data: settings } = await admin
+        .from('notification_settings')
+        .select('auto_on_actu_publish')
+        .eq('id', 1)
+        .single();
+      if (settings?.auto_on_actu_publish) {
+        await createAndDispatchNotification({
+          titre: 'Nouvelle actualité',
+          message: body.titre.trim().slice(0, 200),
+          source: 'auto_actu',
+          source_id: data.id,
+          deeplink_path: `/actualites/${data.id}`,
+          audience: 'all',
+          created_by: caller.id,
+        });
+      }
+    } catch (err) {
+      console.error('[create actu] auto-notification failed:', err);
+    }
   }
 
   return NextResponse.json({ id: data.id });

@@ -16,6 +16,13 @@ type Body = {
 
 const FLIPBOOK_SOUS: DocumentSousRubrique[] = ['livret_accueil', 'reglement_interieur'];
 
+/** Retire le fragment #page/N (Heyzine) pour ouvrir le flipbook à la page 1. */
+function normalizeFlipbookUrl(u: string | null | undefined): string | null {
+  const v = u?.trim();
+  if (!v) return null;
+  return v.split('#')[0].replace(/([?&])(page|p)=[^&]*/gi, '$1').replace(/[?&]$/, '') || null;
+}
+
 export async function POST(request: NextRequest) {
   const caller = await getCurrentProfile();
   if (!caller || caller.role !== 'admin' || !caller.actif) {
@@ -28,7 +35,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'sous_rubrique flipbook invalide' }, { status: 400 });
   }
   const titre = body?.titre?.trim() || (sous === 'livret_accueil' ? "Livret d'accueil" : 'Règlement intérieur');
-  const flipbookUrl = body?.flipbook_url?.trim() || null;
+  const flipbookUrl = normalizeFlipbookUrl(body?.flipbook_url);
   const statut = body?.statut === 'publie' ? 'publie' : 'brouillon';
 
   const admin = createAdminClient();

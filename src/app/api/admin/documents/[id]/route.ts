@@ -20,7 +20,17 @@ type Body = {
   sous_rubrique?: DocumentSousRubrique | null;
   flipbook_url?: string | null;
   ordre?: number;
+  est_article?: boolean;
+  contenu_html?: string | null;
+  contenu_json?: unknown | null;
 };
+
+/** Retire le fragment #page/N (Heyzine) pour ouvrir le flipbook à la page 1. */
+function normalizeFlipbookUrl(u: string | null | undefined): string | null {
+  const v = u?.trim();
+  if (!v) return null;
+  return v.split('#')[0].replace(/([?&])(page|p)=[^&]*/gi, '$1').replace(/[?&]$/, '') || null;
+}
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   const caller = await getCurrentProfile();
@@ -46,6 +56,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     flipbook_url?: string | null;
     ordre?: number;
     est_video_verticale?: boolean;
+    est_article?: boolean;
+    contenu_html?: string | null;
+    contenu_json?: unknown | null;
   };
   const update: Update = {};
 
@@ -56,8 +69,16 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   if (body.featured_jusqua !== undefined) update.featured_jusqua = body.featured_jusqua;
   if (body.rubrique !== undefined) update.rubrique = body.rubrique;
   if (body.sous_rubrique !== undefined) update.sous_rubrique = body.sous_rubrique;
-  if (body.flipbook_url !== undefined) update.flipbook_url = body.flipbook_url;
+  if (body.flipbook_url !== undefined) update.flipbook_url = normalizeFlipbookUrl(body.flipbook_url);
   if (typeof body.ordre === 'number') update.ordre = body.ordre;
+
+  // Article rédigé
+  if (body.est_article !== undefined) {
+    update.est_article = body.est_article;
+    if (body.est_article) update.est_video_verticale = false;
+  }
+  if (body.contenu_html !== undefined) update.contenu_html = body.contenu_html;
+  if (body.contenu_json !== undefined) update.contenu_json = body.contenu_json;
 
   // Si on remplace le fichier
   if (body.fichier_url !== undefined) {

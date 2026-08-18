@@ -8,6 +8,7 @@ import {
   FileText,
   Film,
   Image as ImageIcon,
+  Newspaper,
   Pin,
   Send,
   Trash2,
@@ -19,8 +20,10 @@ import { useState, useTransition } from 'react';
 
 import FileUpload, { type UploadedFile } from './FileUpload';
 import ImagePicker from '@/components/admin/ImagePicker';
+import RichTextEditor from '@/components/admin/RichTextEditor';
 import { useToast } from '@/components/Toast';
 import { isImage, isPdf } from '@/lib/documents/constants';
+import { createClient } from '@/lib/supabase/client';
 import type {
   DocumentRow,
   DocumentRubrique,
@@ -34,14 +37,24 @@ type Props = {
 };
 
 /** Type de contenu pour Avantages / Conseils. */
-type ContentType = 'pdf' | 'image' | 'video' | 'flipbook';
+type ContentType = 'pdf' | 'image' | 'video' | 'flipbook' | 'article';
 
 const CONTENT_TYPES: Array<{ value: ContentType; label: string; icon: React.ReactNode }> = [
   { value: 'pdf', label: '📄 PDF', icon: <FileText className="h-4 w-4" /> },
   { value: 'image', label: '🖼️ Image', icon: <ImageIcon className="h-4 w-4" /> },
   { value: 'video', label: '🎬 Vidéo verticale', icon: <Film className="h-4 w-4" /> },
   { value: 'flipbook', label: '📕 Flipbook Heyzine', icon: <BookOpen className="h-4 w-4" /> },
+  { value: 'article', label: '📝 Article rédigé', icon: <Newspaper className="h-4 w-4" /> },
 ];
+
+/** Retire le fragment #page/N (Heyzine) pour ouvrir le flipbook à la page 1. */
+function normalizeFlipbookUrl(u: string): string {
+  return u
+    .split('#')[0]
+    .replace(/([?&])(page|p)=[^&]*/gi, '$1')
+    .replace(/[?&]$/, '')
+    .trim();
+}
 
 const STATUT_BADGE: Record<DocumentStatut, string> = {
   brouillon: 'bg-slate-100 text-slate-700',
@@ -54,6 +67,7 @@ const STATUT_LABEL: Record<DocumentStatut, string> = {
 
 function initialContentType(initial: DocumentRow | null): ContentType {
   if (!initial) return 'pdf';
+  if (initial.est_article) return 'article';
   if (initial.flipbook_url) return 'flipbook';
   if (initial.est_video_verticale) return 'video';
   if (initial.mime_type && isImage(initial.mime_type)) return 'image';
@@ -85,11 +99,13 @@ export default function DocumentEditor({ initial }: Props) {
   const showContentType = rubrique === 'avantages' || rubrique === 'conseils';
   const [contentType, setContentType] = useState<ContentType>(initialContentType(initial));
   const isFlipbookMode = showContentType && contentType === 'flipbook';
+  const isArticleMode = showContentType && contentType === 'article';
 
   const [statut, setStatut] = useState<DocumentStatut>(initial?.statut ?? 'brouillon');
   const [titre, setTitre] = useState(initial?.titre ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [flipbookUrl, setFlipbookUrl] = useState(initial?.flipbook_url ?? '');
+  const [contenuHtml, setContenuHtml] = useState(initial?.contenu_html ?? '');
 
   const [file, setFile] = useState<UploadedFile | null>(
     initial && initial.fichier_url
@@ -113,12 +129,34 @@ export default function DocumentEditor({ initial }: Props) {
 
   const folderSlug = rubrique;
 
+  async function handleUploadInlineImage(f: File): Promise<string> {
+    const supabase = createClient();
+    const ext = f.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+    const folder = isNew ? 'articles/draft' : `articles/${initial!.id}`;
+    const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error } = await supabase.storage
+      .from('actus-images')
+      .upload(path, f, { contentType: f.type, upsert: false });
+    if (error) throw error;
+    const { data } = supabase.storage.from('actus-images').getPublicUrl(path);
+    return data.publicUrl;
+  }
+
+  function articleIsEmpty(): boolean {
+    return contenuHtml.replace(/<[^>]+>/g, '').trim().length === 0;
+  }
+
   function ensureRequired(): boolean {
     if (!titre.trim()) {
       notify('error', 'Le titre est obligatoire.');
       return false;
     }
-    if (isFlipbookMode) {
+    if (isArticleMode) {
+      if (articleIsEmpty()) {
+        notify('error', "Rédigez le contenu de l'article.");
+        return false;
+      }
+    } else if (isFlipbookMode) {
       if (!flipbookUrl.trim()) {
         notify('error', "Renseignez l'URL du flipbook Heyzine.");
         return false;
@@ -139,9 +177,18 @@ export default function DocumentEditor({ initial }: Props) {
       featured_jusqua: featuredJusqua,
       rubrique,
       sous_rubrique: rubrique === 'infos_pro' ? sousRubrique : null,
+      est_article: isArticleMode,
     };
+    if (isArticleMode) {
+      return {
+        ...base,
+        contenu_html: contenuHtml,
+        contenu_json: null,
+        flipbook_url: null,
+      };
+    }
     if (isFlipbookMode) {
-      return { ...base, flipbook_url: flipbookUrl.trim() || null };
+      return { ...base, flipbook_url: normalizeFlipbookUrl(flipbookUrl) || null, contenu_html: null };
     }
     return {
       ...base,
@@ -150,6 +197,7 @@ export default function DocumentEditor({ initial }: Props) {
       fichier_taille: file!.taille,
       mime_type: file!.mime_type,
       flipbook_url: null,
+      contenu_html: null,
     };
   }
 
@@ -283,7 +331,11 @@ export default function DocumentEditor({ initial }: Props) {
           {isNew ? 'Nouveau document' : 'Modifier le document'}
         </h1>
         <p className="mt-2 text-sm text-ink-500">
-          {isFlipbookMode ? 'Flipbook Heyzine (lien).' : 'PDF, image ou vidéo verticale.'}
+          {isArticleMode
+            ? 'Article rédigé (éditeur de texte enrichi).'
+            : isFlipbookMode
+              ? 'Flipbook Heyzine (lien).'
+              : 'PDF, image ou vidéo verticale.'}
         </p>
       </header>
 
@@ -310,7 +362,16 @@ export default function DocumentEditor({ initial }: Props) {
           </Section>
         ) : null}
 
-        {isFlipbookMode ? (
+        {isArticleMode ? (
+          <Section title="Contenu de l'article" required>
+            <RichTextEditor
+              value={contenuHtml}
+              onChange={setContenuHtml}
+              onUploadImage={handleUploadInlineImage}
+              placeholder="Rédigez votre article… (titres, listes, images, encadrés)"
+            />
+          </Section>
+        ) : isFlipbookMode ? (
           <Section title="Flipbook Heyzine" required>
             <Field label="URL du flipbook" required>
               <input
