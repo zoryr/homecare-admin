@@ -8,6 +8,8 @@ type Body = {
   date_fin?: string;
   raison?: string | null;
   standard_ouvert?: boolean;
+  ferme_matin?: boolean;
+  ferme_apres_midi?: boolean;
 };
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -29,6 +31,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'La date de fin doit être après la date de début.' }, { status: 400 });
   }
 
+  // Par défaut : fermeture toute la journée. Au moins une demi-journée doit être fermée.
+  const fermeMatin = body?.ferme_matin ?? true;
+  const fermeApresMidi = body?.ferme_apres_midi ?? true;
+  if (!fermeMatin && !fermeApresMidi) {
+    return NextResponse.json(
+      { error: 'Précisez au moins une demi-journée fermée (matin, après-midi, ou toute la journée).' },
+      { status: 400 },
+    );
+  }
+
   const admin = createAdminClient();
   const { data, error } = await admin
     .from('horaires_exceptions')
@@ -37,6 +49,8 @@ export async function POST(request: NextRequest) {
       date_fin: fin,
       raison: body?.raison?.trim() || null,
       standard_ouvert: body?.standard_ouvert === true,
+      ferme_matin: fermeMatin,
+      ferme_apres_midi: fermeApresMidi,
       cree_par: caller.id,
     })
     .select('id')

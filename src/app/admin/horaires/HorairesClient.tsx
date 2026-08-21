@@ -195,7 +195,12 @@ function ExceptionsSection({
   const [fin, setFin] = useState('');
   const [raison, setRaison] = useState('');
   const [standardOuvert, setStandardOuvert] = useState(false);
+  const [portee, setPortee] = useState<'journee' | 'matin' | 'apresmidi'>('journee');
   const [saving, setSaving] = useState(false);
+
+  // matin/après-midi déduits de la portée choisie.
+  const fermeMatin = portee === 'journee' || portee === 'matin';
+  const fermeApresMidi = portee === 'journee' || portee === 'apresmidi';
 
   async function add() {
     if (!debut || !fin) {
@@ -211,6 +216,8 @@ function ExceptionsSection({
         date_fin: fin,
         raison: raison.trim() || null,
         standard_ouvert: standardOuvert,
+        ferme_matin: fermeMatin,
+        ferme_apres_midi: fermeApresMidi,
       }),
     });
     setSaving(false);
@@ -229,6 +236,8 @@ function ExceptionsSection({
           date_fin: fin,
           raison: raison.trim() || null,
           standard_ouvert: standardOuvert,
+          ferme_matin: fermeMatin,
+          ferme_apres_midi: fermeApresMidi,
           cree_par: '',
           cree_le: new Date().toISOString(),
         },
@@ -238,6 +247,7 @@ function ExceptionsSection({
     setFin('');
     setRaison('');
     setStandardOuvert(false);
+    setPortee('journee');
     notifyOk('Fermeture ajoutée.');
   }
 
@@ -269,6 +279,15 @@ function ExceptionsSection({
                   {e.date_debut === e.date_fin ? e.date_debut : `${e.date_debut} → ${e.date_fin}`}
                 </span>
                 {e.raison ? <span className="text-ink-500"> · {e.raison}</span> : null}
+                {e.ferme_matin && !e.ferme_apres_midi ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                    🌅 Matin seul
+                  </span>
+                ) : !e.ferme_matin && e.ferme_apres_midi ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                    🌇 Après-midi seul
+                  </span>
+                ) : null}
                 {e.standard_ouvert ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">
                     ☎️ Standard ouvert
@@ -318,6 +337,31 @@ function ExceptionsSection({
           {saving ? 'Ajout…' : '+ Ajouter'}
         </button>
       </div>
+
+      <fieldset className="mt-3">
+        <legend className="mb-1.5 text-xs font-medium text-ink-600">Portée de la fermeture</legend>
+        <div className="flex flex-wrap gap-4 text-sm text-ink-700">
+          {(
+            [
+              { v: 'journee', label: 'Toute la journée' },
+              { v: 'matin', label: 'Matin uniquement (9h-13h)' },
+              { v: 'apresmidi', label: 'Après-midi uniquement (14h-18h)' },
+            ] as const
+          ).map((opt) => (
+            <label key={opt.v} className="inline-flex items-center gap-2">
+              <input
+                type="radio"
+                name="portee-fermeture"
+                value={opt.v}
+                checked={portee === opt.v}
+                onChange={() => setPortee(opt.v)}
+                className="h-4 w-4 border-ink-300 accent-brand-500"
+              />
+              {opt.label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
 
       <label className="mt-3 flex items-start gap-2 text-sm text-ink-700">
         <input

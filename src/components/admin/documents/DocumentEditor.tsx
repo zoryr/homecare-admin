@@ -95,10 +95,18 @@ export default function DocumentEditor({ initial }: Props) {
       : 'notes_service',
   );
 
-  // Type de contenu : uniquement pour Avantages / Conseils (Infos pro = fichier).
-  const showContentType = rubrique === 'avantages' || rubrique === 'conseils';
+  // Type de contenu : pour Avantages / Conseils (tous types), et pour les
+  // Notes de service / Infos personnel (fichier + article rédigé, mais pas flipbook).
+  const isInfosProArticleZone =
+    rubrique === 'infos_pro' &&
+    (sousRubrique === 'notes_service' || sousRubrique === 'informations_personnel');
+  const showContentType = rubrique === 'avantages' || rubrique === 'conseils' || isInfosProArticleZone;
+  // Le flipbook n'est proposé que pour Avantages / Conseils (Infos pro : Livret /
+  // Règlement passent par leur formulaire dédié).
+  const allowFlipbook = rubrique === 'avantages' || rubrique === 'conseils';
+  const availableTypes = CONTENT_TYPES.filter((ct) => ct.value !== 'flipbook' || allowFlipbook);
   const [contentType, setContentType] = useState<ContentType>(initialContentType(initial));
-  const isFlipbookMode = showContentType && contentType === 'flipbook';
+  const isFlipbookMode = allowFlipbook && contentType === 'flipbook';
   const isArticleMode = showContentType && contentType === 'article';
 
   const [statut, setStatut] = useState<DocumentStatut>(initial?.statut ?? 'brouillon');
@@ -343,7 +351,7 @@ export default function DocumentEditor({ initial }: Props) {
         {showContentType ? (
           <Section title="Type de contenu">
             <div className="flex flex-wrap gap-2">
-              {CONTENT_TYPES.map((ct) => (
+              {availableTypes.map((ct) => (
                 <button
                   key={ct.value}
                   type="button"
