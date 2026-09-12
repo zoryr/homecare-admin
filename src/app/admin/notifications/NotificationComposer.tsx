@@ -14,6 +14,8 @@ type Audience = 'all' | 'selection';
 
 type Props = {
   activeProfiles: ActiveProfile[];
+  /** Comptes ayant au moins un téléphone enregistré, donc réellement joignables. */
+  reachableUserIds: string[];
   onClose: () => void;
   onSuccess: (toastMessage: string) => void;
   onError: (msg: string) => void;
@@ -29,7 +31,13 @@ function defaultLaterDate(): { date: string; time: string } {
   };
 }
 
-export default function NotificationComposer({ activeProfiles, onClose, onSuccess, onError }: Props) {
+export default function NotificationComposer({
+  activeProfiles,
+  reachableUserIds,
+  onClose,
+  onSuccess,
+  onError,
+}: Props) {
   const [titre, setTitre] = useState('');
   const [message, setMessage] = useState('');
   const [when, setWhen] = useState<When>('now');
@@ -47,6 +55,15 @@ export default function NotificationComposer({ activeProfiles, onClose, onSucces
   }, [when, date, time]);
 
   const recipientCount = audience === 'all' ? activeProfiles.length : selected.size;
+
+  // Un destinataire sans téléphone enregistré ne reçoit rien du tout : ni le push,
+  // ni la notification dans l'application. On l'affiche clairement pour ne pas
+  // laisser croire à un envoi réussi.
+  const reachableSet = useMemo(() => new Set(reachableUserIds), [reachableUserIds]);
+  const reachableCount = useMemo(() => {
+    const ids = audience === 'all' ? activeProfiles.map((p) => p.id) : Array.from(selected);
+    return ids.filter((id) => reachableSet.has(id)).length;
+  }, [audience, activeProfiles, selected, reachableSet]);
   const isFutureValid = !scheduledAt || scheduledAt.getTime() > Date.now() + 30_000;
 
   function toggleProfile(id: string) {
@@ -259,6 +276,21 @@ export default function NotificationComposer({ activeProfiles, onClose, onSucces
               </div>
             </div>
           </div>
+          {reachableCount < recipientCount ? (
+            <p className="mt-3 rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-800">
+              {reachableCount === 0 ? (
+                <>
+                  Aucun destinataire n&apos;a de téléphone enregistré : ce message ne sera reçu par
+                  personne.
+                </>
+              ) : (
+                <>
+                  Seuls <strong>{reachableCount}</strong> destinataires sur {recipientCount} ont un
+                  téléphone enregistré, les autres ne recevront rien.
+                </>
+              )}
+            </p>
+          ) : null}
           <p className="mt-3 text-xs text-ink-500">
             {when === 'now' ? (
               <>Envoyé à <strong>{recipientCount}</strong> personne{recipientCount > 1 ? 's' : ''}.</>

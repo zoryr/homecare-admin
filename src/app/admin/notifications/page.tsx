@@ -22,6 +22,17 @@ export default async function NotificationsAdminPage() {
     supabase.from('profiles').select('id, email, prenom, nom').eq('actif', true).order('email'),
   ]);
 
+  // Téléphones réellement joignables : un compte sans device_token enregistré ne
+  // reçoit NI le push NI la notification dans l'app (la liste de l'app lit
+  // notification_deliveries, qui n'est alimentée que par l'envoi push).
+  const { data: tokenRows } = await supabase
+    .from('device_tokens')
+    .select('user_id')
+    .eq('active', true);
+  const reachableUserIds = Array.from(
+    new Set((tokenRows ?? []).map((t) => t.user_id as string)),
+  );
+
   const settings = settingsRow as NotificationSettings | null;
   const notifs = (notifsRows ?? []) as Notification[];
   const totalActive = activeCount ?? 0;
@@ -73,6 +84,7 @@ export default async function NotificationsAdminPage() {
       notifs={withStats}
       totalActive={totalActive}
       activeProfiles={activeProfiles}
+      reachableUserIds={reachableUserIds}
     />
   );
 }
