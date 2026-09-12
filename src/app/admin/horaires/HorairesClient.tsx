@@ -344,8 +344,8 @@ function ExceptionsSection({
           {(
             [
               { v: 'journee', label: 'Toute la journée' },
-              { v: 'matin', label: 'Matin uniquement (9h-13h)' },
-              { v: 'apresmidi', label: 'Après-midi uniquement (14h-18h)' },
+              { v: 'matin', label: "Matin uniquement (fermé jusqu'à 12h)" },
+              { v: 'apresmidi', label: 'Après-midi uniquement (fermé à partir de 12h)' },
             ] as const
           ).map((opt) => (
             <label key={opt.v} className="inline-flex items-center gap-2">
