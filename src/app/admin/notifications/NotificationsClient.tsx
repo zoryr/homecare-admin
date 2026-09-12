@@ -78,16 +78,18 @@ export default function NotificationsClient({
         </p>
         <h1 className="mt-1 font-display text-4xl font-medium text-ink-900">Notifications</h1>
         <p className="mt-2 text-sm text-ink-500">
+          Vos messages sont toujours consultables dans l&apos;application.{' '}
           {reachableUserIds.length} compte{reachableUserIds.length > 1 ? 's' : ''} sur {totalActive}{' '}
-          {reachableUserIds.length > 1 ? 'ont' : 'a'} un téléphone enregistré et{' '}
-          {reachableUserIds.length > 1 ? 'peuvent' : 'peut'} recevoir vos messages.
+          {reachableUserIds.length > 1 ? 'ont' : 'a'} en plus un téléphone enregistré, et{' '}
+          {reachableUserIds.length > 1 ? 'reçoivent' : 'reçoit'} donc une notification sur
+          l&apos;écran.
         </p>
         {reachableUserIds.length === 0 ? (
           <p className="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
-            Aucun téléphone n&apos;est enregistré pour le moment : vos messages ne seront reçus par
-            personne, ni en notification ni dans l&apos;application. Un téléphone s&apos;enregistre à
-            la première connexion sur l&apos;application installée (les notifications ne fonctionnent
-            pas dans Expo Go).
+            Aucun téléphone n&apos;est enregistré pour le moment : personne ne verra de notification
+            s&apos;afficher sur son écran. Les messages restent lisibles dans l&apos;application, via
+            la cloche. Un téléphone s&apos;enregistre à la première connexion sur l&apos;application
+            installée, les notifications ne fonctionnant pas dans Expo Go.
           </p>
         ) : null}
       </header>

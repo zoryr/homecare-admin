@@ -2,7 +2,14 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
-import { corsHeaders } from '../_shared/cors.ts';
+// En-têtes CORS recopiés ici volontairement : la fonction est déployée en
+// fichier unique, donc ce fichier doit être exactement ce qui tourne en prod
+// (un import relatif vers ../_shared/ ne serait pas embarqué au déploiement).
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+};
 
 type Body = { notification_id?: string };
 
@@ -96,7 +103,20 @@ Deno.serve(async (req: Request): Promise<Response> => {
       return json({ success: true, sent_count: 0, failed_count: 0, note: 'no_recipients' }, 200);
     }
 
-    // 5. Récupère tous les tokens actifs de ces users
+    // 5. Dépose le message dans la boîte de réception de chaque destinataire.
+    //    Indépendant du push : un salarié sans téléphone enregistré, ou qui a
+    //    refusé les notifications, retrouve quand même le message dans l'app.
+    //    ignoreDuplicates : on n'écrase jamais un read_at déjà posé.
+    await supabase.from('notification_deliveries').upsert(
+      userIds.map((id: string) => ({
+        notification_id: notif.id,
+        user_id: id,
+        status: 'pending',
+      })),
+      { onConflict: 'notification_id,user_id', ignoreDuplicates: true },
+    );
+
+    // 6. Récupère tous les tokens actifs de ces users
     const { data: tokens } = await supabase
       .from('device_tokens')
       .select('user_id, expo_push_token, platform')
@@ -107,7 +127,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       t.expo_push_token.startsWith('ExponentPushToken['),
     );
 
-    // 6. Envoi par batch à Expo
+    // 7. Envoi par batch à Expo
     const messages = validTokens.map((t: { expo_push_token: string }) => ({
       to: t.expo_push_token,
       title: notif.titre,
@@ -116,9 +136,21 @@ Deno.serve(async (req: Request): Promise<Response> => {
       data: notif.deeplink_path ? { deeplink_path: notif.deeplink_path } : {},
     }));
 
-    let sentCount = 0;
-    let failedCount = 0;
-    const deliveries: any[] = [];
+    // Résultat du push agrégé PAR DESTINATAIRE : un salarié peut avoir plusieurs
+    // téléphones, mais il n'a qu'une seule ligne de réception par notification.
+    type PushResult = {
+      ok: boolean;
+      token: string | null;
+      platform: string | null;
+      error: string | null;
+    };
+    const perUser = new Map<string, PushResult>();
+
+    function recordPush(userId: string, result: PushResult) {
+      // Un seul téléphone joint suffit à considérer le destinataire notifié.
+      if (perUser.get(userId)?.ok) return;
+      perUser.set(userId, result);
+    }
 
     for (let i = 0; i < messages.length; i += BATCH_SIZE) {
       const batch = messages.slice(i, i + BATCH_SIZE);
@@ -141,24 +173,18 @@ Deno.serve(async (req: Request): Promise<Response> => {
         tickets.forEach((ticket: any, idx: number) => {
           const tokenInfo = batchTokens[idx];
           if (ticket.status === 'ok') {
-            sentCount++;
-            deliveries.push({
-              notification_id: notif.id,
-              user_id: tokenInfo.user_id,
-              expo_push_token: tokenInfo.expo_push_token,
+            recordPush(tokenInfo.user_id, {
+              ok: true,
+              token: tokenInfo.expo_push_token,
               platform: tokenInfo.platform,
-              status: 'sent',
-              sent_at: new Date().toISOString(),
+              error: null,
             });
           } else {
-            failedCount++;
-            deliveries.push({
-              notification_id: notif.id,
-              user_id: tokenInfo.user_id,
-              expo_push_token: tokenInfo.expo_push_token,
+            recordPush(tokenInfo.user_id, {
+              ok: false,
+              token: tokenInfo.expo_push_token,
               platform: tokenInfo.platform,
-              status: 'failed',
-              error_message: ticket.message ?? ticket.details?.error ?? 'unknown',
+              error: ticket.message ?? ticket.details?.error ?? 'unknown',
             });
             // Désactive le token si DeviceNotRegistered
             if (ticket.details?.error === 'DeviceNotRegistered') {
@@ -171,24 +197,33 @@ Deno.serve(async (req: Request): Promise<Response> => {
           }
         });
       } catch (err) {
-        failedCount += batch.length;
         for (const t of batchTokens) {
-          deliveries.push({
-            notification_id: notif.id,
-            user_id: t.user_id,
-            expo_push_token: t.expo_push_token,
+          recordPush(t.user_id, {
+            ok: false,
+            token: t.expo_push_token,
             platform: t.platform,
-            status: 'failed',
-            error_message: err instanceof Error ? err.message : 'fetch_error',
+            error: err instanceof Error ? err.message : 'fetch_error',
           });
         }
       }
     }
 
-    if (deliveries.length > 0) {
-      await supabase.from('notification_deliveries').upsert(deliveries, {
-        onConflict: 'notification_id,user_id,expo_push_token',
-      });
+    // 8. Complète la ligne de réception avec le résultat du push. On n'envoie
+    //    pas read_at : un message déjà lu doit le rester.
+    if (perUser.size > 0) {
+      const now = new Date().toISOString();
+      await supabase.from('notification_deliveries').upsert(
+        Array.from(perUser.entries()).map(([userId, r]) => ({
+          notification_id: notif.id,
+          user_id: userId,
+          expo_push_token: r.token,
+          platform: r.platform,
+          status: r.ok ? 'sent' : 'failed',
+          sent_at: r.ok ? now : null,
+          error_message: r.error,
+        })),
+        { onConflict: 'notification_id,user_id' },
+      );
     }
 
     await supabase
@@ -196,7 +231,16 @@ Deno.serve(async (req: Request): Promise<Response> => {
       .update({ sent_at: new Date().toISOString() })
       .eq('id', notif.id);
 
-    return json({ success: true, sent_count: sentCount, failed_count: failedCount }, 200);
+    const sentCount = Array.from(perUser.values()).filter((r) => r.ok).length;
+    return json(
+      {
+        success: true,
+        recipients: userIds.length,
+        sent_count: sentCount,
+        failed_count: perUser.size - sentCount,
+      },
+      200,
+    );
   } catch (err) {
     return json({ error: err instanceof Error ? err.message : 'unknown' }, 500);
   }

@@ -280,13 +280,15 @@ export default function NotificationComposer({
             <p className="mt-3 rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-800">
               {reachableCount === 0 ? (
                 <>
-                  Aucun destinataire n&apos;a de téléphone enregistré : ce message ne sera reçu par
-                  personne.
+                  Aucun destinataire n&apos;a de téléphone enregistré : personne ne verra de
+                  notification s&apos;afficher. Le message sera quand même lisible dans
+                  l&apos;application.
                 </>
               ) : (
                 <>
-                  Seuls <strong>{reachableCount}</strong> destinataires sur {recipientCount} ont un
-                  téléphone enregistré, les autres ne recevront rien.
+                  Seuls <strong>{reachableCount}</strong> destinataires sur {recipientCount} verront
+                  une notification s&apos;afficher. Les autres retrouveront le message dans
+                  l&apos;application.
                 </>
               )}
             </p>
