@@ -95,15 +95,16 @@ export default function DocumentEditor({ initial }: Props) {
       : 'notes_service',
   );
 
-  // Type de contenu : pour Avantages / Conseils (tous types), et pour les
-  // Notes de service / Infos personnel (fichier + article rédigé, mais pas flipbook).
+  // Type de contenu : pour Avantages / Conseils, et pour les Notes de service /
+  // Infos personnel, qui acceptent les mêmes formats.
   const isInfosProArticleZone =
     rubrique === 'infos_pro' &&
     (sousRubrique === 'notes_service' || sousRubrique === 'informations_personnel');
   const showContentType = rubrique === 'avantages' || rubrique === 'conseils' || isInfosProArticleZone;
-  // Le flipbook n'est proposé que pour Avantages / Conseils (Infos pro : Livret /
-  // Règlement passent par leur formulaire dédié).
-  const allowFlipbook = rubrique === 'avantages' || rubrique === 'conseils';
+  // Seuls le Livret d'accueil et le Règlement intérieur sont à part : leur
+  // flipbook unique se gère depuis leur formulaire dédié, dans la liste.
+  const allowFlipbook =
+    rubrique === 'avantages' || rubrique === 'conseils' || isInfosProArticleZone;
   const availableTypes = CONTENT_TYPES.filter((ct) => ct.value !== 'flipbook' || allowFlipbook);
   const [contentType, setContentType] = useState<ContentType>(initialContentType(initial));
   const isFlipbookMode = allowFlipbook && contentType === 'flipbook';
