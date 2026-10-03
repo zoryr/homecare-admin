@@ -131,7 +131,9 @@ export default function DocumentEditor({ initial }: Props) {
   const [coverSource, setCoverSource] = useState<ImageSource | null>(initial?.image_source ?? null);
 
   const [featuredJusqua, setFeaturedJusqua] = useState<string | null>(initial?.featured_jusqua ?? null);
-  const [notifier, setNotifier] = useState(true);
+  // Décochée par défaut : la plupart des documents sont ajoutés sans vouloir
+  // prévenir toute l'équipe. On coche au cas par cas.
+  const [notifier, setNotifier] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [busyAction, setBusyAction] = useState<null | 'publish' | 'unpublish' | 'delete'>(null);
