@@ -12,6 +12,8 @@ export const ACTU_TAGS: ActuTag[] = [
   { id: 'evenement', label: 'Événement', color: 'green' },
   { id: 'temoignage', label: 'Témoignage', color: 'purple' },
   { id: 'annonce', label: 'Annonce', color: 'red' },
+  { id: 'newsletter', label: 'Newsletter', color: 'blue' },
+  { id: 'reglementaire', label: 'Règlementaire', color: 'amber' },
 ];
 
 export function getTagById(id: string): ActuTag | undefined {
