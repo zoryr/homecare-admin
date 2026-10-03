@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
+import { PAUSE_DEJEUNER } from '@/lib/horaires/types';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getCurrentProfile } from '@/lib/supabase/get-profile';
 
@@ -7,8 +8,6 @@ type Body = {
   jour_semaine?: number;
   ouvert?: boolean;
   matin_debut?: string | null;
-  matin_fin?: string | null;
-  apres_midi_debut?: string | null;
   apres_midi_fin?: string | null;
 };
 
@@ -31,8 +30,10 @@ export async function POST(request: NextRequest) {
     .update({
       ouvert,
       matin_debut: ouvert ? (body.matin_debut ?? null) : null,
-      matin_fin: ouvert ? (body.matin_fin ?? null) : null,
-      apres_midi_debut: ouvert ? (body.apres_midi_debut ?? null) : null,
+      // Pause déjeuner imposée : l'agence ferme de 13h à 14h tous les jours,
+      // quel que soit l'horaire saisi.
+      matin_fin: ouvert ? PAUSE_DEJEUNER.debut : null,
+      apres_midi_debut: ouvert ? PAUSE_DEJEUNER.fin : null,
       apres_midi_fin: ouvert ? (body.apres_midi_fin ?? null) : null,
       updated_at: new Date().toISOString(),
     })

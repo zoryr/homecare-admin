@@ -8,13 +8,18 @@ type Body = {
   date_fin?: string;
   raison?: string | null;
   standard_ouvert?: boolean;
-  ferme_matin?: boolean;
-  ferme_apres_midi?: boolean;
+  heure_debut?: string | null;
+  heure_fin?: string | null;
+  recurrence?: string | null;
+  recurrence_fin?: string | null;
 };
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const HEURE_RE = /^\d{2}:\d{2}$/;
 
-// POST : crée une fermeture exceptionnelle.
+// POST : crée une fermeture exceptionnelle. Les heures délimitent exactement la
+// fermeture ; sans heures, c'est la journée entière. Une fermeture peut se
+// répéter chaque semaine jusqu'à une date de fin.
 export async function POST(request: NextRequest) {
   const caller = await getCurrentProfile();
   if (!caller || caller.role !== 'admin' || !caller.actif) {
@@ -28,17 +33,54 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Dates invalides (format YYYY-MM-DD)' }, { status: 400 });
   }
   if (fin < debut) {
-    return NextResponse.json({ error: 'La date de fin doit être après la date de début.' }, { status: 400 });
-  }
-
-  // Par défaut : fermeture toute la journée. Au moins une demi-journée doit être fermée.
-  const fermeMatin = body?.ferme_matin ?? true;
-  const fermeApresMidi = body?.ferme_apres_midi ?? true;
-  if (!fermeMatin && !fermeApresMidi) {
     return NextResponse.json(
-      { error: 'Précisez au moins une demi-journée fermée (matin, après-midi, ou toute la journée).' },
+      { error: 'La date de fin doit être après la date de début.' },
       { status: 400 },
     );
+  }
+
+  const heureDebut = body?.heure_debut?.trim() || null;
+  const heureFin = body?.heure_fin?.trim() || null;
+  if ((heureDebut === null) !== (heureFin === null)) {
+    return NextResponse.json(
+      { error: "Renseignez l'heure de début et l'heure de fin, ou aucune des deux pour une journée entière." },
+      { status: 400 },
+    );
+  }
+  if (heureDebut && heureFin) {
+    if (!HEURE_RE.test(heureDebut) || !HEURE_RE.test(heureFin)) {
+      return NextResponse.json({ error: 'Heures invalides (format HH:MM)' }, { status: 400 });
+    }
+    if (heureFin <= heureDebut) {
+      return NextResponse.json(
+        { error: "L'heure de fin doit être après l'heure de début." },
+        { status: 400 },
+      );
+    }
+  }
+
+  const recurrence = body?.recurrence === 'hebdomadaire' ? 'hebdomadaire' : 'aucune';
+  let recurrenceFin: string | null = null;
+  if (recurrence === 'hebdomadaire') {
+    recurrenceFin = body?.recurrence_fin ?? '';
+    if (!DATE_RE.test(recurrenceFin)) {
+      return NextResponse.json(
+        { error: 'Indiquez la date de fin de la répétition.' },
+        { status: 400 },
+      );
+    }
+    if (recurrenceFin < debut) {
+      return NextResponse.json(
+        { error: 'La fin de la répétition doit être après la date de début.' },
+        { status: 400 },
+      );
+    }
+    if (fin !== debut) {
+      return NextResponse.json(
+        { error: 'Une fermeture qui se répète doit porter sur une seule journée.' },
+        { status: 400 },
+      );
+    }
   }
 
   const admin = createAdminClient();
@@ -49,13 +91,15 @@ export async function POST(request: NextRequest) {
       date_fin: fin,
       raison: body?.raison?.trim() || null,
       standard_ouvert: body?.standard_ouvert === true,
-      ferme_matin: fermeMatin,
-      ferme_apres_midi: fermeApresMidi,
+      heure_debut: heureDebut,
+      heure_fin: heureFin,
+      recurrence,
+      recurrence_fin: recurrenceFin,
       cree_par: caller.id,
     })
-    .select('id')
+    .select('*')
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ id: data.id });
+  return NextResponse.json({ exception: data });
 }

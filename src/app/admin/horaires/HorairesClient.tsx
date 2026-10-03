@@ -5,7 +5,14 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 
 import { useToast } from '@/components/Toast';
-import { JOURS_LABELS, JOURS_ORDRE, type HoraireConfig, type HoraireException } from '@/lib/horaires/types';
+import {
+  JOURS_LABELS,
+  JOURS_ORDRE,
+  PAUSE_DEJEUNER,
+  type HoraireConfig,
+  type HoraireException,
+  type HoraireRecurrence,
+} from '@/lib/horaires/types';
 
 const JOURS_FERIES_LABELS = [
   "Jour de l'An (1er janvier)",
@@ -103,8 +110,6 @@ function DayRow({
 }) {
   const [ouvert, setOuvert] = useState(config?.ouvert ?? false);
   const [matinDebut, setMatinDebut] = useState(hhmm(config?.matin_debut ?? null));
-  const [matinFin, setMatinFin] = useState(hhmm(config?.matin_fin ?? null));
-  const [apresDebut, setApresDebut] = useState(hhmm(config?.apres_midi_debut ?? null));
   const [apresFin, setApresFin] = useState(hhmm(config?.apres_midi_fin ?? null));
   const [saving, setSaving] = useState(false);
 
@@ -116,9 +121,10 @@ function DayRow({
       body: JSON.stringify({
         jour_semaine: jour,
         ouvert,
+        // La pause déjeuner n'est pas saisissable : elle est identique tous les jours.
         matin_debut: matinDebut || null,
-        matin_fin: matinFin || null,
-        apres_midi_debut: apresDebut || null,
+        matin_fin: PAUSE_DEJEUNER.debut,
+        apres_midi_debut: PAUSE_DEJEUNER.fin,
         apres_midi_fin: apresFin || null,
       }),
     });
@@ -154,15 +160,13 @@ function DayRow({
 
       {ouvert ? (
         <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-ink-600">
-          <span>Matin</span>
+          <span>Ouverture</span>
           <TimeInput value={matinDebut} onChange={setMatinDebut} />
           <span>→</span>
-          <TimeInput value={matinFin} onChange={setMatinFin} />
-          <span className="mx-2 text-ink-300">|</span>
-          <span>Après-midi</span>
-          <TimeInput value={apresDebut} onChange={setApresDebut} />
-          <span>→</span>
           <TimeInput value={apresFin} onChange={setApresFin} />
+          <span className="text-xs text-ink-500">
+            Pause déjeuner de {PAUSE_DEJEUNER.debut} à {PAUSE_DEJEUNER.fin}, fermée tous les jours.
+          </span>
         </div>
       ) : null}
     </div>
@@ -195,16 +199,26 @@ function ExceptionsSection({
   const [fin, setFin] = useState('');
   const [raison, setRaison] = useState('');
   const [standardOuvert, setStandardOuvert] = useState(false);
-  const [portee, setPortee] = useState<'journee' | 'matin' | 'apresmidi'>('journee');
+  const [touteLaJournee, setTouteLaJournee] = useState(true);
+  const [heureDebut, setHeureDebut] = useState('');
+  const [heureFin, setHeureFin] = useState('');
+  const [recurrence, setRecurrence] = useState<HoraireRecurrence>('aucune');
+  const [recurrenceFin, setRecurrenceFin] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // matin/après-midi déduits de la portée choisie.
-  const fermeMatin = portee === 'journee' || portee === 'matin';
-  const fermeApresMidi = portee === 'journee' || portee === 'apresmidi';
+  const repete = recurrence === 'hebdomadaire';
 
   async function add() {
-    if (!debut || !fin) {
-      notifyErr('Renseignez les deux dates.');
+    if (!debut || (!repete && !fin)) {
+      notifyErr('Renseignez les dates.');
+      return;
+    }
+    if (!touteLaJournee && (!heureDebut || !heureFin)) {
+      notifyErr('Renseignez les heures, ou cochez « toute la journée ».');
+      return;
+    }
+    if (repete && !recurrenceFin) {
+      notifyErr("Indiquez jusqu'à quand la fermeture se répète.");
       return;
     }
     setSaving(true);
@@ -213,11 +227,15 @@ function ExceptionsSection({
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         date_debut: debut,
-        date_fin: fin,
+        // Une fermeture qui se répète porte sur une seule journée, rejouée
+        // chaque semaine jusqu'à la date de fin de répétition.
+        date_fin: repete ? debut : fin,
         raison: raison.trim() || null,
         standard_ouvert: standardOuvert,
-        ferme_matin: fermeMatin,
-        ferme_apres_midi: fermeApresMidi,
+        heure_debut: touteLaJournee ? null : heureDebut,
+        heure_fin: touteLaJournee ? null : heureFin,
+        recurrence,
+        recurrence_fin: repete ? recurrenceFin : null,
       }),
     });
     setSaving(false);
@@ -226,28 +244,19 @@ function ExceptionsSection({
       notifyErr(error ?? 'Échec');
       return;
     }
-    const { id } = (await res.json()) as { id: string };
+    const { exception } = (await res.json()) as { exception: HoraireException };
     setExceptions(
-      [
-        ...exceptions,
-        {
-          id,
-          date_debut: debut,
-          date_fin: fin,
-          raison: raison.trim() || null,
-          standard_ouvert: standardOuvert,
-          ferme_matin: fermeMatin,
-          ferme_apres_midi: fermeApresMidi,
-          cree_par: '',
-          cree_le: new Date().toISOString(),
-        },
-      ].sort((a, b) => a.date_debut.localeCompare(b.date_debut)),
+      [...exceptions, exception].sort((a, b) => a.date_debut.localeCompare(b.date_debut)),
     );
     setDebut('');
     setFin('');
     setRaison('');
     setStandardOuvert(false);
-    setPortee('journee');
+    setTouteLaJournee(true);
+    setHeureDebut('');
+    setHeureFin('');
+    setRecurrence('aucune');
+    setRecurrenceFin('');
     notifyOk('Fermeture ajoutée.');
   }
 
@@ -279,13 +288,14 @@ function ExceptionsSection({
                   {e.date_debut === e.date_fin ? e.date_debut : `${e.date_debut} → ${e.date_fin}`}
                 </span>
                 {e.raison ? <span className="text-ink-500"> · {e.raison}</span> : null}
-                {e.ferme_matin && !e.ferme_apres_midi ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-                    🌅 Matin seul
-                  </span>
-                ) : !e.ferme_matin && e.ferme_apres_midi ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-                    🌇 Après-midi seul
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                  {e.heure_debut && e.heure_fin
+                    ? `🕒 ${hhmm(e.heure_debut)} → ${hhmm(e.heure_fin)}`
+                    : '🕒 Journée entière'}
+                </span>
+                {e.recurrence === 'hebdomadaire' ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700">
+                    🔁 Chaque semaine jusqu&apos;au {e.recurrence_fin}
                   </span>
                 ) : null}
                 {e.standard_ouvert ? (
@@ -321,9 +331,10 @@ function ExceptionsSection({
           Au
           <input
             type="date"
-            value={fin}
+            value={repete ? debut : fin}
+            disabled={repete}
             onChange={(e) => setFin(e.target.value)}
-            className="ml-2 rounded-lg border border-ink-200 bg-white px-2 py-1 text-sm"
+            className="ml-2 rounded-lg border border-ink-200 bg-white px-2 py-1 text-sm disabled:bg-ink-50 disabled:text-ink-400"
           />
         </label>
         <input
@@ -338,30 +349,53 @@ function ExceptionsSection({
         </button>
       </div>
 
-      <fieldset className="mt-3">
-        <legend className="mb-1.5 text-xs font-medium text-ink-600">Portée de la fermeture</legend>
-        <div className="flex flex-wrap gap-4 text-sm text-ink-700">
-          {(
-            [
-              { v: 'journee', label: 'Toute la journée' },
-              { v: 'matin', label: "Matin uniquement (fermé jusqu'à 12h)" },
-              { v: 'apresmidi', label: 'Après-midi uniquement (fermé à partir de 12h)' },
-            ] as const
-          ).map((opt) => (
-            <label key={opt.v} className="inline-flex items-center gap-2">
-              <input
-                type="radio"
-                name="portee-fermeture"
-                value={opt.v}
-                checked={portee === opt.v}
-                onChange={() => setPortee(opt.v)}
-                className="h-4 w-4 border-ink-300 accent-brand-500"
-              />
-              {opt.label}
-            </label>
-          ))}
-        </div>
-      </fieldset>
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-ink-700">
+        <label className="inline-flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={touteLaJournee}
+            onChange={(e) => setTouteLaJournee(e.target.checked)}
+            className="h-4 w-4 rounded border-ink-300 accent-brand-500"
+          />
+          Toute la journée
+        </label>
+        {touteLaJournee ? null : (
+          <span className="inline-flex items-center gap-2">
+            Fermé de
+            <TimeInput value={heureDebut} onChange={setHeureDebut} />
+            à
+            <TimeInput value={heureFin} onChange={setHeureFin} />
+          </span>
+        )}
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-ink-700">
+        <label className="inline-flex items-center gap-2">
+          Répétition
+          <select
+            value={recurrence}
+            onChange={(e) => setRecurrence(e.target.value as HoraireRecurrence)}
+            className="rounded-lg border border-ink-200 bg-white px-2 py-1 text-sm"
+          >
+            <option value="aucune">Aucune</option>
+            <option value="hebdomadaire">Chaque semaine</option>
+          </select>
+        </label>
+        {repete ? (
+          <label className="inline-flex flex-wrap items-center gap-2">
+            jusqu&apos;au
+            <input
+              type="date"
+              value={recurrenceFin}
+              onChange={(e) => setRecurrenceFin(e.target.value)}
+              className="rounded-lg border border-ink-200 bg-white px-2 py-1 text-sm"
+            />
+            <span className="text-xs text-ink-500">
+              La fermeture se répète le même jour de semaine que la date de début.
+            </span>
+          </label>
+        ) : null}
+      </div>
 
       <label className="mt-3 flex items-start gap-2 text-sm text-ink-700">
         <input
