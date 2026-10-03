@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
+import { documentDeeplink } from '@/lib/documents/deeplink';
 import { createAndDispatchNotification } from '@/lib/notifications/create';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getCurrentProfile } from '@/lib/supabase/get-profile';
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
   const { data: existing, error: fetchErr } = await admin
     .from('documents')
-    .select('id, titre, statut, notif_envoyee')
+    .select('id, titre, statut, notif_envoyee, est_article, flipbook_url, est_video_verticale')
     .eq('id', params.id)
     .single();
   if (fetchErr || !existing) {
@@ -55,11 +56,13 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   if (shouldNotify && !existing.notif_envoyee) {
     try {
       await createAndDispatchNotification({
-        titre: 'Nouveau document',
+        titre: existing.est_video_verticale ? 'Nouvelle vidéo' : 'Nouveau document',
         message: existing.titre.slice(0, 200),
         source: 'auto_reglement',
         source_id: existing.id,
-        deeplink_path: `/documents/${existing.id}`,
+        // Chemin selon le type : une vidéo ouvre le lecteur, pas la visionneuse
+        // de document qui affichait "format non supporté".
+        deeplink_path: documentDeeplink(existing),
         audience: 'all',
         created_by: caller.id,
       });
