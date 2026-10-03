@@ -13,9 +13,3 @@ export function getDefaultCoverUrl(originFallback?: string): string {
 }
 
 export const DEFAULT_IMAGE_SOURCE: ImageSource = { provider: 'default' };
-
-/** True si l'URL pointe sur l'image par défaut (peu importe le host). */
-export function isDefaultCoverUrl(url: string | null | undefined): boolean {
-  if (!url) return false;
-  return url.endsWith('/default-actu-cover.png');
-}
