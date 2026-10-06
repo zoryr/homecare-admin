@@ -6,7 +6,7 @@ export const metadata: Metadata = {
     "Données personnelles traitées par l'application Info Care de Home & Care : nature, finalités, durées de conservation et droits des salariés.",
 };
 
-const MAJ = '3 octobre 2026';
+const MAJ = '6 octobre 2026';
 
 /**
  * Page publique, hors espace admin : son URL est déclarée sur l'App Store et le
@@ -125,17 +125,30 @@ export default function ConfidentialitePage() {
 
         <Section titre="6. Combien de temps elles sont conservées">
           <ul>
-            <li>Compte salarié : pendant la durée du contrat de travail, puis supprimé sous 3 mois.</li>
             <li>
-              Jeton de notification : désactivé dès la déconnexion, supprimé après 12 mois sans
-              utilisation.
+              Compte salarié : désactivé dès votre départ, puis supprimé au plus tard 12 mois après
+              la fin du contrat de travail.
             </li>
-            <li>Suivi des notifications : 12 mois.</li>
             <li>
-              Réponses aux sondages : conservées sans lien avec votre compte, pour les statistiques
-              internes.
+              Jeton de notification : supprimé dès la déconnexion, ou avec votre compte.
+            </li>
+            <li>
+              Historique d&apos;envoi et de lecture des notifications : 12 mois, puis suppression
+              automatique.
+            </li>
+            <li>
+              Participation aux sondages, c&apos;est-à-dire le fait d&apos;avoir répondu : 12 mois,
+              puis suppression automatique.
+            </li>
+            <li>
+              Réponses aux sondages : conservées sans limite de durée pour les statistiques
+              internes, car elles ne sont reliées à aucune personne.
             </li>
           </ul>
+          <p>
+            Les suppressions automatiques sont exécutées chaque mois par nos serveurs, sans
+            intervention humaine.
+          </p>
         </Section>
 
         <Section titre="7. Vos droits">
